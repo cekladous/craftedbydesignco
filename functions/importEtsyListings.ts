@@ -10,51 +10,96 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const { mode = 'import' } = await req.json().catch(() => ({}));
+    const { mode = 'import', preview = false } = await req.json().catch(() => ({}));
     const isRefresh = mode === 'refresh';
 
     // Fetch existing portfolio items if refreshing
     let existingItems = [];
-    if (isRefresh) {
+    if (isRefresh || preview) {
       existingItems = await base44.asServiceRole.entities.PortfolioItem.list();
     }
 
     // Fetch Etsy shop page
-    const etsyShopUrl = 'https://www.etsy.com/shop/craftedxdesignco';
-    const shopResponse = await fetch(etsyShopUrl);
-    const shopHtml = await shopResponse.text();
+    const etsyShopUrl = 'https://craftedxdesignco.etsy.com';
+    console.log('Fetching Etsy shop:', etsyShopUrl);
     
-    // Use LLM to extract structured data from the HTML
-    const extractionResult = await base44.integrations.Core.InvokeLLM({
-      prompt: `Extract ALL product listings from this Etsy shop HTML. For each listing, provide:
-1. Exact title
-2. Full description (if visible)
-3. Price
-4. ALL image URLs (look for high-res versions, typically in srcset or data attributes)
-5. Complete listing URL (must include listing ID)
-6. Etsy listing ID (extract from the URL, e.g., from /listing/1234567890/)
-7. Any materials mentioned
-
-Return as JSON array with this structure:
-{
-  "listings": [
-    {
-      "title": "exact title",
-      "description": "full description if available",
-      "price": "$XX.XX",
-      "image_urls": ["url1", "url2", ...],
-      "etsy_url": "https://www.etsy.com/listing/...",
-      "etsy_listing_id": "1234567890",
-      "materials": ["material1", ...]
+    const shopResponse = await fetch(etsyShopUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    
+    if (!shopResponse.ok) {
+      return Response.json({
+        success: false,
+        error: `Failed to fetch Etsy shop (HTTP ${shopResponse.status})`,
+        details: 'The shop may be private, temporarily unavailable, or the URL is incorrect.',
+        diagnostics: {
+          url: etsyShopUrl,
+          status: shopResponse.status,
+          statusText: shopResponse.statusText
+        }
+      });
     }
-  ]
+
+    const shopHtml = await shopResponse.text();
+    console.log(`Fetched HTML: ${shopHtml.length} characters`);
+
+    // Try to extract JSON-LD structured data first
+    const jsonLdMatches = shopHtml.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs);
+    let listings = [];
+    
+    for (const match of jsonLdMatches) {
+      try {
+        const data = JSON.parse(match[1]);
+        if (data['@type'] === 'Product' || (Array.isArray(data) && data.some(item => item['@type'] === 'Product'))) {
+          console.log('Found JSON-LD product data');
+        }
+      } catch (e) {
+        // Continue to next match
+      }
+    }
+
+    // Extract listing data using LLM with better prompting
+    const extractionPrompt = `You are analyzing an Etsy shop page to extract product listings.
+
+CRITICAL: The shop "craftedxdesignco" is PUBLIC and HAS ACTIVE LISTINGS. If you report 0 listings, the extraction has FAILED.
+
+Examine this HTML carefully and extract ALL product listings you can find. Look for:
+- Product cards, tiles, or grid items
+- Listing titles (usually in h3, h2, or link text)
+- Image URLs (check img tags, srcset attributes, data-src, etc.)
+- Listing URLs (links containing /listing/)
+- Prices (if visible)
+- Any material or description text
+
+For EACH listing found, provide:
+{
+  "title": "exact product title",
+  "description": "any description text found (or empty string)",
+  "price": "price if found (or empty string)",
+  "image_urls": ["ALL image URLs found for this listing"],
+  "etsy_url": "full listing URL",
+  "etsy_listing_id": "numeric ID from URL"
 }
 
-HTML content:
-${shopHtml.slice(0, 50000)}`,
+Return JSON:
+{
+  "total_listings_detected": <number>,
+  "extraction_notes": "brief note about what was found",
+  "listings": [...]
+}
+
+HTML (first 60000 chars):
+${shopHtml.slice(0, 60000)}`;
+
+    const extractionResult = await base44.integrations.Core.InvokeLLM({
+      prompt: extractionPrompt,
       response_json_schema: {
         type: "object",
         properties: {
+          total_listings_detected: { type: "number" },
+          extraction_notes: { type: "string" },
           listings: {
             type: "array",
             items: {
@@ -68,36 +113,61 @@ ${shopHtml.slice(0, 50000)}`,
                   items: { type: "string" }
                 },
                 etsy_url: { type: "string" },
-                etsy_listing_id: { type: "string" },
-                materials: {
-                  type: "array",
-                  items: { type: "string" }
-                }
+                etsy_listing_id: { type: "string" }
               },
-              required: ["title", "etsy_url", "image_urls"]
+              required: ["title", "etsy_url"]
             }
           }
-        }
+        },
+        required: ["total_listings_detected", "listings"]
       }
     });
 
-    const listings = extractionResult.listings || [];
+    listings = extractionResult.listings || [];
     
+    console.log(`Extraction result: ${listings.length} listings detected`);
+    console.log('Extraction notes:', extractionResult.extraction_notes);
+
     // Handle 0 listings found
     if (listings.length === 0) {
       return Response.json({
         success: false,
-        error: 'No listings found',
-        details: 'Could not extract any listings from the Etsy shop. This may be due to: shop being private, no active listings, or changes to Etsy\'s page structure.',
-        results: {
-          total: 0,
-          imported: 0,
-          updated: 0,
-          failed: []
+        error: 'No listings detected',
+        details: `The extraction found 0 listings. ${extractionResult.extraction_notes || 'No additional details.'}`,
+        diagnostics: {
+          html_length: shopHtml.length,
+          html_preview: shopHtml.slice(0, 500),
+          extraction_notes: extractionResult.extraction_notes,
+          total_detected: extractionResult.total_listings_detected
         }
       });
     }
-    
+
+    // PREVIEW MODE: Return detected listings without importing
+    if (preview) {
+      const previewData = listings.slice(0, 50).map(listing => ({
+        title: listing.title,
+        image_count: listing.image_urls?.length || 0,
+        has_etsy_url: !!listing.etsy_url,
+        etsy_listing_id: listing.etsy_listing_id,
+        already_imported: existingItems.some(item => 
+          item.etsy_listing_id === listing.etsy_listing_id
+        )
+      }));
+
+      return Response.json({
+        success: true,
+        preview: true,
+        total_detected: listings.length,
+        extraction_notes: extractionResult.extraction_notes,
+        listings: previewData,
+        stats: {
+          new_items: previewData.filter(p => !p.already_imported).length,
+          already_imported: previewData.filter(p => p.already_imported).length
+        }
+      });
+    }
+
     // Category mapping helper
     const categorizeItem = (title, description = '') => {
       const text = `${title} ${description}`.toLowerCase();
@@ -134,12 +204,12 @@ ${shopHtml.slice(0, 50000)}`,
       try {
         // Extract listing ID from URL if not provided
         const listingId = listing.etsy_listing_id || 
-          listing.etsy_url.match(/\/listing\/(\d+)/)?.[1];
+          listing.etsy_url?.match(/\/listing\/(\d+)/)?.[1];
 
         if (!listingId) {
           importResults.failed.push({
             title: listing.title,
-            reason: 'Could not extract Etsy listing ID'
+            reason: 'Could not extract Etsy listing ID from URL'
           });
           continue;
         }
@@ -149,11 +219,42 @@ ${shopHtml.slice(0, 50000)}`,
           item.etsy_listing_id === listingId
         );
 
+        // Skip if already imported and not in refresh mode
+        if (existingItem && !isRefresh) {
+          importResults.skipped++;
+          continue;
+        }
+
         // Download and upload images to app storage
         const uploadedImages = [];
-        for (const imageUrl of listing.image_urls.slice(0, 8)) {
+        const imageUrls = listing.image_urls || [];
+        
+        if (imageUrls.length === 0) {
+          importResults.failed.push({
+            title: listing.title,
+            reason: 'No images found for this listing'
+          });
+          continue;
+        }
+
+        for (const imageUrl of imageUrls.slice(0, 8)) {
           try {
-            const imageResponse = await fetch(imageUrl);
+            // Clean and validate image URL
+            let cleanUrl = imageUrl.trim();
+            if (!cleanUrl.startsWith('http')) {
+              if (cleanUrl.startsWith('//')) {
+                cleanUrl = 'https:' + cleanUrl;
+              } else {
+                continue;
+              }
+            }
+
+            const imageResponse = await fetch(cleanUrl);
+            if (!imageResponse.ok) {
+              console.error(`Failed to fetch image: ${cleanUrl} (${imageResponse.status})`);
+              continue;
+            }
+            
             const imageBlob = await imageResponse.blob();
             
             const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
@@ -184,18 +285,17 @@ ${shopHtml.slice(0, 50000)}`,
           "Printed vinyl banners", "UV printed acrylic", "UV printed wood"
         ];
 
-        const mappedMaterials = (listing.materials || [])
-          .map(mat => {
-            const matLower = mat.toLowerCase();
-            return validMaterials.find(vm => vm.toLowerCase().includes(matLower)) || null;
-          })
-          .filter(Boolean);
+        const materialText = listing.description || '';
+        const mappedMaterials = [];
+        for (const validMat of validMaterials) {
+          if (materialText.toLowerCase().includes(validMat.toLowerCase())) {
+            mappedMaterials.push(validMat);
+          }
+        }
 
         // Clean description for portfolio use
         let cleanDescription = listing.description || listing.title;
-        // Remove excessive line breaks and trim
         cleanDescription = cleanDescription.replace(/\n{3,}/g, '\n\n').trim();
-        // Limit to reasonable length for portfolio
         if (cleanDescription.length > 500) {
           cleanDescription = cleanDescription.slice(0, 497) + '...';
         }
@@ -215,7 +315,7 @@ ${shopHtml.slice(0, 50000)}`,
           await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, {
             ...etsyData,
             // Preserve these custom fields set by user
-            category: existingItem.category, // Keep user's category choice
+            category: existingItem.category,
             featured: existingItem.featured,
             visible: existingItem.visible,
             display_order: existingItem.display_order,
@@ -248,10 +348,6 @@ ${shopHtml.slice(0, 50000)}`,
             category: categorizeItem(listing.title, listing.description),
             images_count: uploadedImages.length
           });
-
-        } else {
-          // Item exists but we're in import mode - skip
-          importResults.skipped++;
         }
 
       } catch (itemError) {
@@ -265,13 +361,16 @@ ${shopHtml.slice(0, 50000)}`,
     return Response.json({
       success: true,
       mode: isRefresh ? 'refresh' : 'import',
+      extraction_notes: extractionResult.extraction_notes,
       results: importResults
     });
 
   } catch (error) {
     return Response.json({ 
+      success: false,
       error: error.message,
-      stack: error.stack 
+      stack: error.stack,
+      details: 'An unexpected error occurred during import'
     }, { status: 500 });
   }
 });
