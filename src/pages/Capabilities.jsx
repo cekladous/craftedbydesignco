@@ -21,6 +21,21 @@ const capabilities = [
     title: "Laser Engraving",
     description: "Detailed engraving on a variety of surfaces. From delicate text to photo-realistic images, we bring your vision to life.",
   },
+  {
+    icon: Sparkles,
+    title: "Vinyl Cutting",
+    description: "Precision vinyl cutting for custom decals, lettering, and signage using professional-grade equipment, including Cricut. Ideal for event signage, window decals, wall graphics, labels, and custom accents. Suitable for both temporary and permanent applications across a variety of surfaces.",
+  },
+  {
+    icon: Package,
+    title: "Printed Banners",
+    description: "High-quality printed banners designed for events, celebrations, and branded displays. Perfect for weddings, showers, birthdays, corporate events, and storefront promotions. Available in multiple sizes and finishes with clean, vibrant printing for indoor or outdoor use.",
+  },
+  {
+    icon: Layers,
+    title: "UV Printed Materials",
+    description: "Direct UV printing on rigid materials for crisp, full-color designs with exceptional durability. UV printing allows for detailed graphics, logos, and text on acrylic, wood, and other substrates, creating a professional, high-end finish that is scratch-resistant and fade-resistant.",
+  },
 ];
 
 const materials = [
@@ -93,7 +108,7 @@ export default function Capabilities() {
           </motion.div>
 
           {/* Core Capabilities */}
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
             {capabilities.map((cap, index) => (
               <motion.div
                 key={cap.title}
