@@ -50,27 +50,27 @@ export default function PortfolioGrid({ items, onItemClick }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             
             {/* Quick Actions */}
-            <div className="absolute bottom-4 left-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-              {item.cta_type === "etsy" && item.etsy_url ? (
+            <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+              <Link
+                to={createPageUrl("Contact") + `?product=${encodeURIComponent(item.name)}&category=${item.category}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center justify-center gap-2 bg-white text-[#2D2D2D] py-3 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] hover:text-white transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Request Quote
+              </Link>
+              
+              {item.etsy_url && (
                 <a
                   href={item.etsy_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-1 flex items-center justify-center gap-2 bg-white text-[#2D2D2D] py-3 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] hover:text-white transition-colors"
+                  className="flex items-center justify-center gap-2 bg-white/90 text-[#2D2D2D] py-3 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] hover:text-white transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   View on Etsy
                 </a>
-              ) : (
-                <Link
-                  to={createPageUrl("Contact") + `?product=${encodeURIComponent(item.name)}&category=${item.category}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-1 flex items-center justify-center gap-2 bg-white text-[#2D2D2D] py-3 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] hover:text-white transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Request Quote
-                </Link>
               )}
             </div>
           </div>
