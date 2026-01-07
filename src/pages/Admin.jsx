@@ -40,6 +40,7 @@ import {
   User,
   MessageSquare,
 } from "lucide-react";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -86,7 +87,6 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [newMaterial, setNewMaterial] = useState("");
-  const [newImageUrl, setNewImageUrl] = useState("");
 
   // Check admin access
   useEffect(() => {
@@ -162,7 +162,6 @@ export default function Admin() {
     setEditingItem(null);
     setFormData(emptyItem);
     setNewMaterial("");
-    setNewImageUrl("");
   };
 
   const handleSubmit = (e) => {
@@ -191,22 +190,7 @@ export default function Admin() {
     }));
   };
 
-  const addImage = () => {
-    if (newImageUrl.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), newImageUrl.trim()],
-      }));
-      setNewImageUrl("");
-    }
-  };
 
-  const removeImage = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
-  };
 
   if (loading) {
     return (
@@ -470,17 +454,43 @@ export default function Admin() {
 
               <div className="space-y-2">
                 <Label>Materials</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={newMaterial}
-                    onChange={(e) => setNewMaterial(e.target.value)}
-                    placeholder="Add material..."
-                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addMaterial())}
-                  />
-                  <Button type="button" onClick={addMaterial} variant="outline">
-                    Add
-                  </Button>
-                </div>
+                <Select
+                  value=""
+                  onValueChange={(value) => {
+                    if (value && !formData.materials?.includes(value)) {
+                      setFormData({
+                        ...formData,
+                        materials: [...(formData.materials || []), value]
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select materials..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Mirrored acrylic">Mirrored acrylic</SelectItem>
+                    <SelectItem value="Colored acrylic">Colored acrylic</SelectItem>
+                    <SelectItem value="Clear acrylic">Clear acrylic</SelectItem>
+                    <SelectItem value="Frosted acrylic">Frosted acrylic</SelectItem>
+                    <SelectItem value="Painted acrylic">Painted acrylic</SelectItem>
+                    <SelectItem value="Back-painted acrylic">Back-painted acrylic</SelectItem>
+                    <SelectItem value="UV-printable acrylic">UV-printable acrylic</SelectItem>
+                    <SelectItem value="Birch plywood">Birch plywood</SelectItem>
+                    <SelectItem value="Maple wood">Maple wood</SelectItem>
+                    <SelectItem value="Walnut wood">Walnut wood</SelectItem>
+                    <SelectItem value="Acacia wood">Acacia wood</SelectItem>
+                    <SelectItem value="MDF">MDF</SelectItem>
+                    <SelectItem value="Stained wood">Stained wood</SelectItem>
+                    <SelectItem value="Painted wood">Painted wood</SelectItem>
+                    <SelectItem value="Leatherette">Leatherette</SelectItem>
+                    <SelectItem value="Adhesive vinyl (permanent)">Adhesive vinyl (permanent)</SelectItem>
+                    <SelectItem value="Adhesive vinyl (removable)">Adhesive vinyl (removable)</SelectItem>
+                    <SelectItem value="Printed vinyl banners">Printed vinyl banners</SelectItem>
+                    <SelectItem value="UV printed acrylic">UV printed acrylic</SelectItem>
+                    <SelectItem value="UV printed wood">UV printed wood</SelectItem>
+                  </SelectContent>
+                </Select>
                 {formData.materials?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.materials.map((mat, idx) => (
@@ -505,33 +515,10 @@ export default function Admin() {
 
               <div className="space-y-2">
                 <Label>Images</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="Paste image URL..."
-                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
-                  />
-                  <Button type="button" onClick={addImage} variant="outline">
-                    Add
-                  </Button>
-                </div>
-                {formData.images?.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 mt-2">
-                    {formData.images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-sm overflow-hidden group">
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(idx)}
-                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <ImageUploader
+                  images={formData.images || []}
+                  onChange={(newImages) => setFormData({ ...formData, images: newImages })}
+                />
               </div>
 
               <div className="space-y-2">

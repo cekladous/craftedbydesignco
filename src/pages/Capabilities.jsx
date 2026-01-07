@@ -40,28 +40,28 @@ const capabilities = [
 
 const materials = [
   {
-    name: "Wood",
-    types: ["Birch Plywood", "Walnut", "Cherry", "Maple", "Oak", "MDF"],
-    description: "Natural warmth and character for rustic and elegant pieces alike.",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-  },
-  {
     name: "Acrylic",
-    types: ["Clear", "Frosted", "Mirror", "Colored", "Fluorescent"],
+    types: ["Mirrored", "Colored", "Clear", "Frosted", "Painted/Back-painted", "UV-printable"],
     description: "Modern, sleek finish perfect for contemporary designs and signage.",
     image: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=600&q=80",
   },
   {
+    name: "Wood",
+    types: ["Birch Plywood", "Maple", "Walnut", "Acacia", "MDF", "Stained", "Painted"],
+    description: "Natural warmth and character for rustic and elegant pieces alike.",
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
+  },
+  {
     name: "Leatherette",
-    types: ["Black", "Brown", "Navy", "Gray", "Custom Colors"],
-    description: "Luxurious feel for journals, flasks, and personalized accessories.",
+    types: ["Premium quality for journals, flasks, and accessories"],
+    description: "Luxurious feel for personalized items and gifts.",
     image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
   },
   {
-    name: "Marble",
-    types: ["Marble Coasters", "Marble Tiles", "Natural Stone"],
-    description: "Elegant stone surfaces for sophisticated home décor and gifts.",
-    image: "https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&q=80",
+    name: "Vinyl & Printed Materials",
+    types: ["Adhesive Vinyl (Permanent & Removable)", "Printed Vinyl Banners", "UV Printed Acrylic", "UV Printed Wood"],
+    description: "Versatile materials for custom decals, banners, and durable printed designs.",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80",
   },
 ];
 
