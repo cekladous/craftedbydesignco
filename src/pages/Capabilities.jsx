@@ -24,7 +24,7 @@ const capabilities = [
   {
     icon: Sparkles,
     title: "Vinyl Cutting",
-    description: "Precision vinyl cutting for custom decals, lettering, and signage using professional-grade equipment, including Cricut. Ideal for event signage, window decals, wall graphics, labels, and custom accents. Suitable for both temporary and permanent applications across a variety of surfaces.",
+    description: "Precision vinyl cutting for custom decals, lettering, and signage using professional-grade equipment. Ideal for event signage, window decals, wall graphics, labels, and custom accents. Suitable for both temporary and permanent applications across a variety of surfaces.",
   },
   {
     icon: Package,
