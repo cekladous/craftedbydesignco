@@ -144,15 +144,23 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                 </div>
               )}
               
-              {/* CTA */}
+              {/* CTA Buttons */}
               <div className="space-y-3">
-                {item.cta_type === "etsy" && item.etsy_url ? (
+                <Link
+                  to={createPageUrl("Contact") + `?product=${encodeURIComponent(item.name)}&category=${item.category}&materials=${encodeURIComponent((item.materials || []).join(', '))}`}
+                  className="flex items-center justify-center gap-2 w-full bg-[#2D2D2D] text-white py-4 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Request Custom Quote
+                </Link>
+                
+                {item.etsy_url && (
                   <>
                     <a
                       href={item.etsy_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full bg-[#2D2D2D] text-white py-4 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] transition-colors"
+                      className="flex items-center justify-center gap-2 w-full bg-white border-2 border-[#2D2D2D] text-[#2D2D2D] py-4 text-xs tracking-widest uppercase font-medium hover:bg-[#2D2D2D] hover:text-white transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
                       View on Etsy
@@ -161,14 +169,6 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                       Checkout securely on Etsy
                     </p>
                   </>
-                ) : (
-                  <Link
-                    to={createPageUrl("Contact") + `?product=${encodeURIComponent(item.name)}&category=${item.category}&materials=${encodeURIComponent((item.materials || []).join(', '))}`}
-                    className="flex items-center justify-center gap-2 w-full bg-[#2D2D2D] text-white py-4 text-xs tracking-widest uppercase font-medium hover:bg-[#C4A962] transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    Request Custom Quote
-                  </Link>
                 )}
               </div>
             </div>

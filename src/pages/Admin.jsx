@@ -53,10 +53,7 @@ const categories = [
   { value: "specialty", label: "Specialty Items" },
 ];
 
-const ctaTypes = [
-  { value: "etsy", label: "View on Etsy" },
-  { value: "inquiry", label: "Request Quote" },
-];
+
 
 const inquiryStatuses = [
   { value: "new", label: "New", color: "bg-blue-100 text-blue-800" },
@@ -72,7 +69,6 @@ const emptyItem = {
   materials: [],
   images: [],
   etsy_url: "",
-  cta_type: "inquiry",
   customization_options: "",
   featured: false,
   visible: true,
@@ -544,42 +540,16 @@ export default function Admin() {
                 />
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Call-to-Action Type</Label>
-                  <Select
-                    value={formData.cta_type}
-                    onValueChange={(value) => setFormData({ ...formData, cta_type: value, etsy_url: value === "inquiry" ? "" : formData.etsy_url })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ctaTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-[#6B6B6B]">
-                    {formData.cta_type === "etsy" 
-                      ? "Links to your Etsy listing for checkout"
-                      : "Opens inquiry form for custom quote requests"}
-                  </p>
-                </div>
-
-                {formData.cta_type === "etsy" && (
-                  <div className="space-y-2">
-                    <Label>Etsy Listing URL *</Label>
-                    <Input
-                      value={formData.etsy_url}
-                      onChange={(e) => setFormData({ ...formData, etsy_url: e.target.value })}
-                      placeholder="https://www.etsy.com/listing/..."
-                      required={formData.cta_type === "etsy"}
-                    />
-                  </div>
-                )}
+              <div className="space-y-2">
+                <Label>Etsy Listing URL (Optional)</Label>
+                <Input
+                  value={formData.etsy_url}
+                  onChange={(e) => setFormData({ ...formData, etsy_url: e.target.value })}
+                  placeholder="https://www.etsy.com/listing/..."
+                />
+                <p className="text-xs text-[#6B6B6B]">
+                  If provided, "View on Etsy" button will appear alongside "Request Custom Quote"
+                </p>
               </div>
 
               <div className="flex items-center gap-8">
