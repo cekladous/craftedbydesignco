@@ -39,6 +39,7 @@ import {
   Calendar,
   User,
   MessageSquare,
+  Download,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
@@ -85,6 +86,8 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [newMaterial, setNewMaterial] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState(null);
 
   // Check admin access
   useEffect(() => {
@@ -188,6 +191,22 @@ export default function Admin() {
     }));
   };
 
+  const handleImport = async () => {
+    if (!confirm('Import all Etsy listings? This will create new portfolio items.')) return;
+    
+    setImporting(true);
+    setImportResults(null);
+    try {
+      const { data } = await base44.functions.invoke('importEtsyListings', {});
+      setImportResults(data.results);
+      queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+    } catch (error) {
+      alert('Import failed: ' + error.message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
 
 
   if (loading) {
@@ -227,14 +246,55 @@ export default function Admin() {
           <TabsContent value="portfolio">
             <div className="flex justify-between items-center mb-6">
               <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
-              <Button
-                onClick={() => openDialog()}
-                className="bg-[#2D2D2D] hover:bg-[#C4A962]"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Item
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleImport}
+                  disabled={importing}
+                  variant="outline"
+                  className="border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Import from Etsy
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => openDialog()}
+                  className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
             </div>
+
+            {importResults && (
+              <div className="mb-6 p-4 bg-white rounded-sm border border-[#E8E6E3]">
+                <h3 className="font-medium text-[#2D2D2D] mb-2">Import Complete</h3>
+                <p className="text-sm text-[#6B6B6B] mb-2">
+                  Imported {importResults.imported} of {importResults.total} listings
+                </p>
+                {importResults.failed.length > 0 && (
+                  <details className="text-xs text-red-600">
+                    <summary className="cursor-pointer">
+                      {importResults.failed.length} failed
+                    </summary>
+                    <ul className="mt-2 space-y-1">
+                      {importResults.failed.map((f, i) => (
+                        <li key={i}>{f.title}: {f.reason}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
 
             {itemsLoading ? (
               <div className="flex items-center justify-center py-20">
