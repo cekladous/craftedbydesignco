@@ -544,12 +544,12 @@ export default function Admin() {
                 />
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>CTA Type</Label>
+                  <Label>Call-to-Action Type</Label>
                   <Select
                     value={formData.cta_type}
-                    onValueChange={(value) => setFormData({ ...formData, cta_type: value })}
+                    onValueChange={(value) => setFormData({ ...formData, cta_type: value, etsy_url: value === "inquiry" ? "" : formData.etsy_url })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -562,15 +562,24 @@ export default function Admin() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-[#6B6B6B]">
+                    {formData.cta_type === "etsy" 
+                      ? "Links to your Etsy listing for checkout"
+                      : "Opens inquiry form for custom quote requests"}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label>Etsy URL</Label>
-                  <Input
-                    value={formData.etsy_url}
-                    onChange={(e) => setFormData({ ...formData, etsy_url: e.target.value })}
-                    placeholder="https://..."
-                  />
-                </div>
+
+                {formData.cta_type === "etsy" && (
+                  <div className="space-y-2">
+                    <Label>Etsy Listing URL *</Label>
+                    <Input
+                      value={formData.etsy_url}
+                      onChange={(e) => setFormData({ ...formData, etsy_url: e.target.value })}
+                      placeholder="https://www.etsy.com/listing/..."
+                      required={formData.cta_type === "etsy"}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-8">
