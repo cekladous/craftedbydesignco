@@ -48,12 +48,22 @@ export default function Contact() {
     const urlParams = new URLSearchParams(window.location.search);
     const product = urlParams.get("product");
     const category = urlParams.get("category");
+    const materials = urlParams.get("materials");
     
     if (product || category) {
+      let message = "";
+      if (product) {
+        message = `I'm interested in: ${product}\n`;
+        if (materials) {
+          message += `Materials: ${materials}\n`;
+        }
+        message += "\n";
+      }
+      
       setFormData((prev) => ({
         ...prev,
         category: category || "",
-        message: product ? `I'm interested in: ${product}\n\n` : "",
+        message: message,
       }));
     }
   }, []);
