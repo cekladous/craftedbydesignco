@@ -41,6 +41,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
+import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -213,6 +214,7 @@ export default function Admin() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-[#E8E6E3] mb-8">
             <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
+            <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
             <TabsTrigger value="inquiries">
               Inquiries
               {inquiries.filter((i) => i.status === "new").length > 0 && (
@@ -316,6 +318,11 @@ export default function Admin() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Capabilities Tab */}
+          <TabsContent value="capabilities">
+            <CapabilitiesManager />
           </TabsContent>
 
           {/* Inquiries Tab */}
