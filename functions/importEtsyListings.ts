@@ -10,6 +10,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    const { mode = 'import' } = await req.json().catch(() => ({}));
+    const isRefresh = mode === 'refresh';
+
+    // Fetch existing portfolio items if refreshing
+    let existingItems = [];
+    if (isRefresh) {
+      existingItems = await base44.asServiceRole.entities.PortfolioItem.list();
+    }
+
     // Fetch Etsy shop page
     const etsyShopUrl = 'https://www.etsy.com/shop/craftedxdesignco';
     const shopResponse = await fetch(etsyShopUrl);
@@ -19,21 +28,23 @@ Deno.serve(async (req) => {
     const extractionResult = await base44.integrations.Core.InvokeLLM({
       prompt: `Extract ALL product listings from this Etsy shop HTML. For each listing, provide:
 1. Exact title
-2. Description (if visible)
+2. Full description (if visible)
 3. Price
 4. ALL image URLs (look for high-res versions, typically in srcset or data attributes)
-5. Listing URL
-6. Any materials mentioned
+5. Complete listing URL (must include listing ID)
+6. Etsy listing ID (extract from the URL, e.g., from /listing/1234567890/)
+7. Any materials mentioned
 
 Return as JSON array with this structure:
 {
   "listings": [
     {
       "title": "exact title",
-      "description": "description if available",
+      "description": "full description if available",
       "price": "$XX.XX",
       "image_urls": ["url1", "url2", ...],
       "etsy_url": "https://www.etsy.com/listing/...",
+      "etsy_listing_id": "1234567890",
       "materials": ["material1", ...]
     }
   ]
@@ -57,6 +68,7 @@ ${shopHtml.slice(0, 50000)}`,
                   items: { type: "string" }
                 },
                 etsy_url: { type: "string" },
+                etsy_listing_id: { type: "string" },
                 materials: {
                   type: "array",
                   items: { type: "string" }
@@ -96,6 +108,8 @@ ${shopHtml.slice(0, 50000)}`,
     const importResults = {
       total: listings.length,
       imported: 0,
+      updated: 0,
+      skipped: 0,
       failed: [],
       items: []
     };
@@ -103,15 +117,30 @@ ${shopHtml.slice(0, 50000)}`,
     // Process each listing
     for (const listing of listings.slice(0, 30)) {
       try {
+        // Extract listing ID from URL if not provided
+        const listingId = listing.etsy_listing_id || 
+          listing.etsy_url.match(/\/listing\/(\d+)/)?.[1];
+
+        if (!listingId) {
+          importResults.failed.push({
+            title: listing.title,
+            reason: 'Could not extract Etsy listing ID'
+          });
+          continue;
+        }
+
+        // Check if item already exists (for refresh)
+        const existingItem = existingItems.find(item => 
+          item.etsy_listing_id === listingId
+        );
+
         // Download and upload images to app storage
         const uploadedImages = [];
-        for (const imageUrl of listing.image_urls.slice(0, 6)) {
+        for (const imageUrl of listing.image_urls.slice(0, 8)) {
           try {
-            // Fetch image
             const imageResponse = await fetch(imageUrl);
             const imageBlob = await imageResponse.blob();
             
-            // Upload to app storage
             const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
               file: imageBlob
             });
@@ -147,26 +176,59 @@ ${shopHtml.slice(0, 50000)}`,
           })
           .filter(Boolean);
 
-        // Create portfolio item
-        const portfolioItem = await base44.asServiceRole.entities.PortfolioItem.create({
+        // Prepare data from Etsy
+        const etsyData = {
           name: listing.title,
-          category: categorizeItem(listing.title, listing.description),
           description: listing.description || `${listing.title} - ${listing.price}`,
           materials: mappedMaterials.length > 0 ? mappedMaterials : undefined,
           images: uploadedImages,
           etsy_url: listing.etsy_url,
-          visible: true,
-          featured: false,
-          display_order: importResults.imported
-        });
+          etsy_listing_id: listingId,
+        };
 
-        importResults.imported++;
-        importResults.items.push({
-          id: portfolioItem.id,
-          title: listing.title,
-          category: categorizeItem(listing.title, listing.description),
-          images_count: uploadedImages.length
-        });
+        if (existingItem && isRefresh) {
+          // REFRESH MODE: Update existing item, preserve custom fields
+          await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, {
+            ...etsyData,
+            // Preserve these custom fields set by user
+            category: existingItem.category, // Keep user's category choice
+            featured: existingItem.featured,
+            visible: existingItem.visible,
+            display_order: existingItem.display_order,
+            customization_options: existingItem.customization_options,
+          });
+
+          importResults.updated++;
+          importResults.items.push({
+            id: existingItem.id,
+            title: listing.title,
+            action: 'updated',
+            images_count: uploadedImages.length
+          });
+
+        } else if (!existingItem) {
+          // IMPORT MODE: Create new item
+          const portfolioItem = await base44.asServiceRole.entities.PortfolioItem.create({
+            ...etsyData,
+            category: categorizeItem(listing.title, listing.description),
+            visible: true,
+            featured: false,
+            display_order: existingItems.length + importResults.imported,
+          });
+
+          importResults.imported++;
+          importResults.items.push({
+            id: portfolioItem.id,
+            title: listing.title,
+            action: 'imported',
+            category: categorizeItem(listing.title, listing.description),
+            images_count: uploadedImages.length
+          });
+
+        } else {
+          // Item exists but we're in import mode - skip
+          importResults.skipped++;
+        }
 
       } catch (itemError) {
         importResults.failed.push({
@@ -178,6 +240,7 @@ ${shopHtml.slice(0, 50000)}`,
 
     return Response.json({
       success: true,
+      mode: isRefresh ? 'refresh' : 'import',
       results: importResults
     });
 

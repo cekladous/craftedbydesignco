@@ -191,17 +191,22 @@ export default function Admin() {
     }));
   };
 
-  const handleImport = async () => {
-    if (!confirm('Import all Etsy listings? This will create new portfolio items.')) return;
+  const handleImport = async (mode = 'import') => {
+    const isRefresh = mode === 'refresh';
+    const message = isRefresh 
+      ? 'Refresh from Etsy? This will update existing items with latest Etsy data while preserving your custom edits.'
+      : 'Import all Etsy listings? This will create new portfolio items for listings not yet imported.';
+    
+    if (!confirm(message)) return;
     
     setImporting(true);
     setImportResults(null);
     try {
-      const { data } = await base44.functions.invoke('importEtsyListings', {});
-      setImportResults(data.results);
+      const { data } = await base44.functions.invoke('importEtsyListings', { mode });
+      setImportResults({ ...data.results, mode });
       queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
     } catch (error) {
-      alert('Import failed: ' + error.message);
+      alert('Operation failed: ' + error.message);
     } finally {
       setImporting(false);
     }
@@ -248,7 +253,7 @@ export default function Admin() {
               <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
               <div className="flex gap-2">
                 <Button
-                  onClick={handleImport}
+                  onClick={() => handleImport('import')}
                   disabled={importing}
                   variant="outline"
                   className="border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white"
@@ -256,13 +261,28 @@ export default function Admin() {
                   {importing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Importing...
+                      Processing...
                     </>
                   ) : (
                     <>
                       <Download className="w-4 h-4 mr-2" />
                       Import from Etsy
                     </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => handleImport('refresh')}
+                  disabled={importing}
+                  variant="outline"
+                  className="border-[#6B6B6B] text-[#6B6B6B] hover:bg-[#6B6B6B] hover:text-white"
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Refresh from Etsy"
                   )}
                 </Button>
                 <Button
@@ -277,13 +297,26 @@ export default function Admin() {
 
             {importResults && (
               <div className="mb-6 p-4 bg-white rounded-sm border border-[#E8E6E3]">
-                <h3 className="font-medium text-[#2D2D2D] mb-2">Import Complete</h3>
-                <p className="text-sm text-[#6B6B6B] mb-2">
-                  Imported {importResults.imported} of {importResults.total} listings
-                </p>
+                <h3 className="font-medium text-[#2D2D2D] mb-2">
+                  {importResults.mode === 'refresh' ? 'Refresh Complete' : 'Import Complete'}
+                </h3>
+                <div className="text-sm text-[#6B6B6B] space-y-1">
+                  {importResults.imported > 0 && (
+                    <p>✓ Imported {importResults.imported} new items</p>
+                  )}
+                  {importResults.updated > 0 && (
+                    <p>✓ Updated {importResults.updated} existing items</p>
+                  )}
+                  {importResults.skipped > 0 && (
+                    <p>• Skipped {importResults.skipped} (already imported)</p>
+                  )}
+                  <p className="text-xs text-[#6B6B6B]/60 mt-2">
+                    Found {importResults.total} listings on Etsy
+                  </p>
+                </div>
                 {importResults.failed.length > 0 && (
-                  <details className="text-xs text-red-600">
-                    <summary className="cursor-pointer">
+                  <details className="text-xs text-red-600 mt-3">
+                    <summary className="cursor-pointer font-medium">
                       {importResults.failed.length} failed
                     </summary>
                     <ul className="mt-2 space-y-1">
