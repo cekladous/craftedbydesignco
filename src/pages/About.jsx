@@ -36,7 +36,7 @@ export default function About() {
               </p>
               <div className="flex items-center gap-6">
                 <a
-                  href="https://www.instagram.com/craftedxdesignco"
+                  href="https://www.instagram.com/craftedbydesignco"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-[#2D2D2D] hover:text-[#C4A962] transition-colors"

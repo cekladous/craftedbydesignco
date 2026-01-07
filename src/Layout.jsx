@@ -96,7 +96,7 @@ export default function Layout({ children, currentPageName }) {
               
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-[#E8E6E3]">
                 <a
-                  href="https://www.instagram.com/craftedxdesignco"
+                  href="https://www.instagram.com/craftedbydesignco"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`transition-colors duration-300 hover:text-[#C4A962] ${
@@ -168,7 +168,7 @@ export default function Layout({ children, currentPageName }) {
                 
                 <div className="pt-6 border-t border-[#E8E6E3] flex items-center gap-6">
                   <a
-                    href="https://www.instagram.com/craftedxdesignco"
+                    href="https://www.instagram.com/craftedbydesignco"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#6B6B6B] hover:text-[#C4A962] transition-colors"
@@ -241,7 +241,7 @@ export default function Layout({ children, currentPageName }) {
                   Shop on Etsy
                 </a>
                 <a
-                  href="https://www.instagram.com/craftedxdesignco"
+                  href="https://www.instagram.com/craftedbydesignco"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"
@@ -249,10 +249,10 @@ export default function Layout({ children, currentPageName }) {
                   Follow on Instagram
                 </a>
                 <a
-                  href="mailto:hello@craftedxdesignco.com"
+                  href="mailto:craftedxdesignco@gmail.com"
                   className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"
                 >
-                  hello@craftedxdesignco.com
+                  craftedxdesignco@gmail.com
                 </a>
               </div>
             </div>
