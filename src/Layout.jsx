@@ -76,7 +76,7 @@ export default function Layout({ children, currentPageName }) {
               <h1 className={`font-serif text-2xl font-medium tracking-wide transition-colors duration-300 ${
                 scrolled || !isHome ? "text-[#2D2D2D]" : "text-white"
               }`}>
-                Crafted × Design Co.
+                Crafted By Design Co.
               </h1>
             </Link>
 
@@ -208,7 +208,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid md:grid-cols-3 gap-12">
             <div>
-              <h3 className="font-serif text-2xl font-medium mb-4">Crafted × Design Co.</h3>
+              <h3 className="font-serif text-2xl font-medium mb-4">Crafted By Design Co.</h3>
               <p className="text-white/60 text-sm leading-relaxed">
                 Custom laser-cut and engraved designs, handcrafted in New Jersey.
               </p>
@@ -260,7 +260,7 @@ export default function Layout({ children, currentPageName }) {
           
           <div className="border-t border-white/10 mt-12 pt-8 text-center">
             <p className="text-xs text-white/40">
-              © {new Date().getFullYear()} Crafted × Design Co. All rights reserved.
+              © {new Date().getFullYear()} Crafted By Design Co. All rights reserved.
             </p>
           </div>
         </div>

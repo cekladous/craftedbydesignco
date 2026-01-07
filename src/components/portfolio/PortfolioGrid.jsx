@@ -35,11 +35,22 @@ export default function PortfolioGrid({ items, onItemClick }) {
         >
           <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[#E8E6E3]">
             {item.images?.[0] ? (
-              <img
-                src={item.images[0]}
-                alt={item.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+              <>
+                <img
+                  src={item.images[0]}
+                  alt={item.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                {/* Multiple images indicator */}
+                {item.images.length > 1 && (
+                  <div className="absolute top-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
+                    </svg>
+                    {item.images.length}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <span className="text-[#6B6B6B]/50 font-serif text-xl">No Image</span>
