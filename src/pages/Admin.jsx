@@ -40,7 +40,6 @@ import {
   User,
   MessageSquare,
 } from "lucide-react";
-import ImageUploader from "@/components/admin/ImageUploader";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -87,6 +86,7 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [newMaterial, setNewMaterial] = useState("");
+  const [newImageUrl, setNewImageUrl] = useState("");
 
   // Check admin access
   useEffect(() => {
@@ -162,6 +162,7 @@ export default function Admin() {
     setEditingItem(null);
     setFormData(emptyItem);
     setNewMaterial("");
+    setNewImageUrl("");
   };
 
   const handleSubmit = (e) => {
@@ -187,6 +188,23 @@ export default function Admin() {
     setFormData((prev) => ({
       ...prev,
       materials: prev.materials.filter((_, i) => i !== index),
+    }));
+  };
+
+  const addImage = () => {
+    if (newImageUrl.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), newImageUrl.trim()],
+      }));
+      setNewImageUrl("");
+    }
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
     }));
   };
 
@@ -487,10 +505,33 @@ export default function Admin() {
 
               <div className="space-y-2">
                 <Label>Images</Label>
-                <ImageUploader
-                  images={formData.images || []}
-                  onChange={(newImages) => setFormData({ ...formData, images: newImages })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    placeholder="Paste image URL..."
+                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
+                  />
+                  <Button type="button" onClick={addImage} variant="outline">
+                    Add
+                  </Button>
+                </div>
+                {formData.images?.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {formData.images.map((img, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-sm overflow-hidden group">
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

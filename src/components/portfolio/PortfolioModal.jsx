@@ -56,68 +56,47 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
             </button>
 
             {/* Image Section */}
-            <div className="relative lg:w-3/5 bg-[#E8E6E3] flex flex-col">
-              {/* Main Image */}
-              <div className="relative flex-1 min-h-[400px] lg:min-h-[500px]">
-                {images.length > 0 ? (
-                  <>
-                    <img
-                      src={images[currentImageIndex]}
-                      alt={`${item.name} - Image ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {hasMultipleImages && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors shadow-lg z-10"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors shadow-lg z-10"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                        
-                        {/* Image counter */}
-                        <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-                          {currentImageIndex + 1} / {images.length}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-[#6B6B6B]/50 font-serif text-xl">No Image</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Thumbnail Strip */}
-              {hasMultipleImages && (
-                <div className="p-4 bg-[#2D2D2D] overflow-x-auto">
-                  <div className="flex gap-2 min-w-max">
-                    {images.map((img, idx) => (
+            <div className="relative lg:w-3/5 aspect-square lg:aspect-auto bg-[#E8E6E3]">
+              {images.length > 0 ? (
+                <>
+                  <img
+                    src={images[currentImageIndex]}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {hasMultipleImages && (
+                    <>
                       <button
-                        key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        className={`relative w-16 h-16 rounded-sm overflow-hidden flex-shrink-0 transition-all ${
-                          idx === currentImageIndex
-                            ? "ring-2 ring-[#C4A962] opacity-100"
-                            : "opacity-60 hover:opacity-100"
-                        }`}
+                        onClick={prevImage}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors"
                       >
-                        <img
-                          src={img}
-                          alt={`Thumbnail ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        <ChevronLeft className="w-5 h-5" />
                       </button>
-                    ))}
-                  </div>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                      
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                        {images.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentImageIndex(idx)}
+                            className={`w-2 h-2 rounded-full transition-colors ${
+                              idx === currentImageIndex ? "bg-white" : "bg-white/40"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center min-h-[300px]">
+                  <span className="text-[#6B6B6B]/50 font-serif text-xl">No Image</span>
                 </div>
               )}
             </div>

@@ -140,7 +140,7 @@ export default function Contact() {
             {/* Contact Options */}
             <div className="space-y-6 mb-12">
               <a
-                href="mailto:craftedxdesignco@gmail.com"
+                href="mailto:hello@craftedxdesignco.com"
                 className="flex items-center gap-4 group"
               >
                 <div className="w-12 h-12 rounded-full bg-[#E8E6E3] flex items-center justify-center group-hover:bg-[#C4A962] transition-colors">
@@ -149,13 +149,13 @@ export default function Contact() {
                 <div>
                   <p className="text-xs tracking-widest uppercase text-[#6B6B6B] mb-1">Email</p>
                   <p className="text-[#2D2D2D] group-hover:text-[#C4A962] transition-colors">
-                    craftedxdesignco@gmail.com
+                    hello@craftedxdesignco.com
                   </p>
                 </div>
               </a>
 
               <a
-                href="https://www.instagram.com/craftedbydesignco"
+                href="https://www.instagram.com/craftedxdesignco"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 group"
@@ -166,7 +166,7 @@ export default function Contact() {
                 <div>
                   <p className="text-xs tracking-widest uppercase text-[#6B6B6B] mb-1">Instagram</p>
                   <p className="text-[#2D2D2D] group-hover:text-[#C4A962] transition-colors">
-                    @craftedbydesignco
+                    @craftedxdesignco
                   </p>
                 </div>
               </a>

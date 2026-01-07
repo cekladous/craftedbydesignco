@@ -23,7 +23,7 @@ export default function About() {
                 About the Studio
               </h1>
               <p className="text-[#6B6B6B] text-lg leading-relaxed mb-6">
-                Crafted By Design Co. is a creative studio dedicated to producing 
+                Crafted × Design Co. is a creative studio dedicated to producing 
                 beautiful, personalized laser-cut and engraved pieces. What started 
                 as a passion project has grown into a full-fledged business, 
                 serving couples, families, and businesses across the country.
@@ -36,7 +36,7 @@ export default function About() {
               </p>
               <div className="flex items-center gap-6">
                 <a
-                  href="https://www.instagram.com/craftedbydesignco"
+                  href="https://www.instagram.com/craftedxdesignco"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-[#2D2D2D] hover:text-[#C4A962] transition-colors"
