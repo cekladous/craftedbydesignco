@@ -31,15 +31,12 @@ import {
   Image as ImageIcon,
   X,
   GripVertical,
-  Eye,
   EyeOff,
   Star,
   Loader2,
   Mail,
   Calendar,
-  User,
   MessageSquare,
-  Download,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
@@ -86,10 +83,7 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [newMaterial, setNewMaterial] = useState("");
-  const [importing, setImporting] = useState(false);
-  const [importResults, setImportResults] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
+
 
   // Check admin access
   useEffect(() => {
@@ -193,47 +187,7 @@ export default function Admin() {
     }));
   };
 
-  const handlePreview = async () => {
-    setImporting(true);
-    setPreviewData(null);
-    try {
-      const { data } = await base44.functions.invoke('importEtsyListings', { preview: true });
-      
-      if (data.success === false) {
-        const diagInfo = data.diagnostics ? `\n\nDiagnostics:\n${JSON.stringify(data.diagnostics, null, 2)}` : '';
-        alert(`Preview Failed\n\n${data.error}\n\n${data.details || ''}${diagInfo}`);
-      } else {
-        setPreviewData(data);
-        setShowPreview(true);
-      }
-    } catch (error) {
-      alert('Preview failed: ' + error.message);
-    } finally {
-      setImporting(false);
-    }
-  };
 
-  const handleImport = async (mode = 'import') => {
-    setImporting(true);
-    setImportResults(null);
-    setShowPreview(false);
-    try {
-      const { data } = await base44.functions.invoke('importEtsyListings', { mode });
-      
-      if (data.success === false) {
-        const diagInfo = data.diagnostics ? `\n\nDiagnostics:\n${JSON.stringify(data.diagnostics, null, 2)}` : '';
-        alert(`Import Failed\n\n${data.error}\n\n${data.details || ''}${diagInfo}`);
-        setImportResults(null);
-      } else {
-        setImportResults({ ...data.results, mode, extraction_notes: data.extraction_notes });
-        queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
-      }
-    } catch (error) {
-      alert('Operation failed: ' + error.message);
-    } finally {
-      setImporting(false);
-    }
-  };
 
 
 
@@ -274,160 +228,16 @@ export default function Admin() {
           <TabsContent value="portfolio">
             <div className="flex justify-between items-center mb-6">
               <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handlePreview}
-                  disabled={importing}
-                  variant="outline"
-                  className="border-[#2D2D2D] text-[#2D2D2D] hover:bg-[#2D2D2D] hover:text-white"
-                >
-                  {importing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Checking...
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-4 h-4 mr-2" />
-                      Preview Etsy Import
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => openDialog()}
-                  className="bg-[#2D2D2D] hover:bg-[#C4A962]"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Item
-                </Button>
-              </div>
+              <Button
+                onClick={() => openDialog()}
+                className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
             </div>
 
-            {showPreview && previewData && (
-              <div className="mb-6 p-6 bg-white rounded-sm border-2 border-[#C4A962]">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-medium text-[#2D2D2D] text-lg mb-1">
-                      Etsy Import Preview
-                    </h3>
-                    <p className="text-sm text-[#6B6B6B]">
-                      {previewData.extraction_notes}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPreview(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
 
-                <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-[#E8E6E3]/50 p-4 rounded">
-                    <p className="text-2xl font-bold text-[#2D2D2D]">{previewData.total_detected}</p>
-                    <p className="text-xs text-[#6B6B6B]">Total listings detected</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded">
-                    <p className="text-2xl font-bold text-green-700">{previewData.stats.new_items}</p>
-                    <p className="text-xs text-green-700">New items to import</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded">
-                    <p className="text-2xl font-bold text-gray-600">{previewData.stats.already_imported}</p>
-                    <p className="text-xs text-gray-600">Already imported</p>
-                  </div>
-                </div>
-
-                {previewData.listings.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-[#2D2D2D] mb-2">Detected listings:</p>
-                    <div className="max-h-60 overflow-y-auto space-y-1">
-                      {previewData.listings.slice(0, 20).map((listing, i) => (
-                        <div key={i} className="text-xs flex items-center gap-2 py-1">
-                          <span className={listing.already_imported ? "text-gray-400" : "text-[#2D2D2D]"}>
-                            {listing.title}
-                          </span>
-                          <span className="text-[#6B6B6B]">({listing.image_count} images)</span>
-                          {listing.already_imported && (
-                            <Badge variant="secondary" className="text-xs">Imported</Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleImport('import')}
-                    disabled={importing || previewData.stats.new_items === 0}
-                    className="bg-[#C4A962] hover:bg-[#2D2D2D]"
-                  >
-                    {importing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      `Import ${previewData.stats.new_items} New Items`
-                    )}
-                  </Button>
-                  {previewData.stats.already_imported > 0 && (
-                    <Button
-                      onClick={() => handleImport('refresh')}
-                      disabled={importing}
-                      variant="outline"
-                    >
-                      {importing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Refreshing...
-                        </>
-                      ) : (
-                        `Refresh ${previewData.stats.already_imported} Existing`
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {importResults && (
-              <div className="mb-6 p-4 bg-white rounded-sm border border-[#E8E6E3]">
-                <h3 className="font-medium text-[#2D2D2D] mb-2">
-                  {importResults.mode === 'refresh' ? 'Refresh Complete' : 'Import Complete'}
-                </h3>
-                <div className="text-sm text-[#6B6B6B] space-y-1">
-                  {importResults.imported > 0 && (
-                    <p>✓ Imported {importResults.imported} new items</p>
-                  )}
-                  {importResults.updated > 0 && (
-                    <p>✓ Updated {importResults.updated} existing items</p>
-                  )}
-                  {importResults.skipped > 0 && (
-                    <p>• Skipped {importResults.skipped} (already imported)</p>
-                  )}
-                  <p className="text-xs text-[#6B6B6B]/60 mt-2">
-                    {importResults.extraction_notes}
-                  </p>
-                  <p className="text-xs text-[#6B6B6B]/60">
-                    Found {importResults.total} listings on Etsy
-                  </p>
-                </div>
-                {importResults.failed.length > 0 && (
-                  <details className="text-xs text-red-600 mt-3">
-                    <summary className="cursor-pointer font-medium">
-                      {importResults.failed.length} failed
-                    </summary>
-                    <ul className="mt-2 space-y-1">
-                      {importResults.failed.map((f, i) => (
-                        <li key={i}>{f.title}: {f.reason}</li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-              </div>
-            )}
 
             {itemsLoading ? (
               <div className="flex items-center justify-center py-20">
