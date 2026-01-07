@@ -63,7 +63,7 @@ export default function About() {
               <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#C4A962] rounded-sm flex items-center justify-center">
                 <div className="text-center text-white">
                   <span className="font-serif text-3xl block">Est.</span>
-                  <span className="text-sm tracking-widest">2020</span>
+                  <span className="text-sm tracking-widest">2019</span>
                 </div>
               </div>
             </motion.div>
