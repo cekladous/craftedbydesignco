@@ -1,20 +1,40 @@
 import React from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowRight } from "lucide-react";
 
 export default function Hero() {
+  const { data: settings } = useQuery({
+    queryKey: ["site-settings-home"],
+    queryFn: async () => {
+      const results = await base44.entities.SiteSettings.filter({ setting_key: "home_hero" });
+      return results[0] || null;
+    },
+  });
+
+  const heroImage = settings?.hero_image;
+  const headline = settings?.hero_headline || "Crafted with\nIntention";
+  const subheadline = settings?.hero_subheadline || "Personalized signage, gifts, and décor—designed to elevate your moments and spaces.";
+
   return (
     <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background */}
       <div className="absolute inset-0">
-        <img
-          src="https://images.unsplash.com/photo-1604848698030-c434ba08ece1?w=1920&q=80"
-          alt="Laser engraved crafts"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+        {heroImage ? (
+          <>
+            <img
+              src={heroImage}
+              alt="Laser engraved crafts"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#2D2D2D] via-[#3D3D3D] to-[#2D2D2D]" />
+        )}
       </div>
 
       {/* Content */}
@@ -34,9 +54,12 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="font-serif text-5xl md:text-7xl lg:text-8xl text-white font-light leading-[1.1] mb-8"
         >
-          Crafted with
-          <br />
-          <span className="italic">Intention</span>
+          {headline.split('\n').map((line, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <br />}
+              {line}
+            </React.Fragment>
+          ))}
         </motion.h1>
         
         <motion.p
@@ -45,7 +68,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light"
         >
-          Personalized signage, gifts, and décor—designed to elevate your moments and spaces.
+          {subheadline}
         </motion.p>
         
         <motion.div
