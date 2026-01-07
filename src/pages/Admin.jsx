@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
+import SiteSettingsManager from "@/components/admin/SiteSettingsManager";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -215,6 +216,7 @@ export default function Admin() {
           <TabsList className="bg-[#E8E6E3] mb-8">
             <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
             <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
+            <TabsTrigger value="homepage">Homepage Settings</TabsTrigger>
             <TabsTrigger value="inquiries">
               Inquiries
               {inquiries.filter((i) => i.status === "new").length > 0 && (
@@ -323,6 +325,11 @@ export default function Admin() {
           {/* Capabilities Tab */}
           <TabsContent value="capabilities">
             <CapabilitiesManager />
+          </TabsContent>
+
+          {/* Homepage Settings Tab */}
+          <TabsContent value="homepage">
+            <SiteSettingsManager />
           </TabsContent>
 
           {/* Inquiries Tab */}
