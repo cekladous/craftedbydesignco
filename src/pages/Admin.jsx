@@ -203,8 +203,14 @@ export default function Admin() {
     setImportResults(null);
     try {
       const { data } = await base44.functions.invoke('importEtsyListings', { mode });
-      setImportResults({ ...data.results, mode });
-      queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+      
+      if (data.success === false) {
+        alert(`Import Failed\n\n${data.error}\n\n${data.details || ''}`);
+        setImportResults(null);
+      } else {
+        setImportResults({ ...data.results, mode });
+        queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+      }
     } catch (error) {
       alert('Operation failed: ' + error.message);
     } finally {

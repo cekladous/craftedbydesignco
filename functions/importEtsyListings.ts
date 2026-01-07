@@ -83,6 +83,21 @@ ${shopHtml.slice(0, 50000)}`,
 
     const listings = extractionResult.listings || [];
     
+    // Handle 0 listings found
+    if (listings.length === 0) {
+      return Response.json({
+        success: false,
+        error: 'No listings found',
+        details: 'Could not extract any listings from the Etsy shop. This may be due to: shop being private, no active listings, or changes to Etsy\'s page structure.',
+        results: {
+          total: 0,
+          imported: 0,
+          updated: 0,
+          failed: []
+        }
+      });
+    }
+    
     // Category mapping helper
     const categorizeItem = (title, description = '') => {
       const text = `${title} ${description}`.toLowerCase();
@@ -114,8 +129,8 @@ ${shopHtml.slice(0, 50000)}`,
       items: []
     };
 
-    // Process each listing
-    for (const listing of listings.slice(0, 30)) {
+    // Process each listing (up to 50 to avoid timeouts)
+    for (const listing of listings.slice(0, 50)) {
       try {
         // Extract listing ID from URL if not provided
         const listingId = listing.etsy_listing_id || 
@@ -176,10 +191,19 @@ ${shopHtml.slice(0, 50000)}`,
           })
           .filter(Boolean);
 
+        // Clean description for portfolio use
+        let cleanDescription = listing.description || listing.title;
+        // Remove excessive line breaks and trim
+        cleanDescription = cleanDescription.replace(/\n{3,}/g, '\n\n').trim();
+        // Limit to reasonable length for portfolio
+        if (cleanDescription.length > 500) {
+          cleanDescription = cleanDescription.slice(0, 497) + '...';
+        }
+
         // Prepare data from Etsy
         const etsyData = {
           name: listing.title,
-          description: listing.description || `${listing.title} - ${listing.price}`,
+          description: cleanDescription,
           materials: mappedMaterials.length > 0 ? mappedMaterials : undefined,
           images: uploadedImages,
           etsy_url: listing.etsy_url,
