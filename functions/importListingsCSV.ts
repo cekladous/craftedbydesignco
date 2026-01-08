@@ -3,6 +3,37 @@ import * as XLSX from 'npm:xlsx@0.18.5';
 
 const BATCH_SIZE = 25; // Process rows in batches to prevent timeouts
 
+// Clean up encoding issues and corrupted characters
+function cleanText(text) {
+  if (!text || typeof text !== 'string') return text;
+  
+  return text
+    // Fix common Windows-1252 to UTF-8 mojibake
+    .replace(/Ã¢â‚¬â„¢/g, "'")  // smart apostrophe
+    .replace(/Ã¢â‚¬Å"/g, '"')   // smart quote left
+    .replace(/Ã¢â‚¬\u009d/g, '"') // smart quote right
+    .replace(/Ã¢â‚¬â€œ/g, '—')  // em dash
+    .replace(/Ã¢â‚¬â€/g, '–')   // en dash
+    .replace(/Ã¢â‚¬Â¢/g, '•')   // bullet
+    .replace(/Ã‚Â°/g, '°')       // degree
+    // Fix the specific patterns mentioned
+    .replace(/Äì/g, '—')         // em dash
+    .replace(/Äô[sS]/g, "'s")    // possessive
+    .replace(/Äôt/g, "'t")       // contraction
+    .replace(/Äù/g, "'")         // smart apostrophe
+    .replace(/-18‚/g, "'")       // corrupted apostrophe
+    // Additional common patterns
+    .replace(/â€™/g, "'")
+    .replace(/â€œ/g, '"')
+    .replace(/â€\u009d/g, '"')
+    .replace(/â€"/g, '—')
+    .replace(/â€"/g, '–')
+    .replace(/Â®/g, '®')
+    .replace(/Â©/g, '©')
+    .replace(/â„¢/g, '™')
+    .trim();
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -121,16 +152,17 @@ Deno.serve(async (req) => {
         // Auto-categorize
         const category = autoCategorizeListing(title, tags);
 
-        // Build portfolio item data
+        // Build portfolio item data with cleaned text
         const portfolioData = {
-          name: title,
-          description: row.DESCRIPTION?.trim() || '',
-          materials: materials,
-          tags: tags,
+          name: cleanText(title),
+          description: cleanText(row.DESCRIPTION?.trim() || ''),
+          materials: materials.map(m => cleanText(m)),
+          tags: tags.map(t => cleanText(t)),
           sku: sku,
           images: imageUrls,
           etsy_url: row.URL?.trim() || row.ETSY_URL?.trim() || '',
           category: category,
+          customization_options: cleanText(row.CUSTOMIZATION_OPTIONS?.trim() || ''),
           featured: existingItem?.featured || false,
           visible: existingItem?.visible !== undefined ? existingItem.visible : true,
           display_order: existingItem?.display_order !== undefined ? existingItem.display_order : displayOrder++
