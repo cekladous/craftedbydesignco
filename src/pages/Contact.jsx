@@ -216,6 +216,23 @@ export default function Contact() {
               </a>
 
               <a
+                href="https://www.facebook.com/CraftedbyDesignCo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 group"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#E8E6E3] flex items-center justify-center group-hover:bg-[#C4A962] transition-colors">
+                  <Facebook className="w-5 h-5 text-[#2D2D2D] group-hover:text-white transition-colors" />
+                </div>
+                <div>
+                  <p className="text-xs tracking-widest uppercase text-[#6B6B6B] mb-1">Facebook</p>
+                  <p className="text-[#2D2D2D] group-hover:text-[#C4A962] transition-colors">
+                    CraftedbyDesignCo
+                  </p>
+                </div>
+              </a>
+
+              <a
                 href="https://craftedxdesignco.etsy.com"
                 target="_blank"
                 rel="noopener noreferrer"
