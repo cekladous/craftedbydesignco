@@ -2,9 +2,21 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { MapPin, Heart, Award, ArrowRight, Instagram } from "lucide-react";
 
 export default function About() {
+  const { data: settings } = useQuery({
+    queryKey: ["site-settings", "about"],
+    queryFn: async () => {
+      const results = await base44.entities.SiteSettings.filter({ setting_key: "about" });
+      return results[0] || {};
+    },
+  });
+
+  const aboutImage = settings?.about_image || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80";
+
   return (
     <div className="pt-32 pb-24">
       {/* Hero Section */}
@@ -55,7 +67,7 @@ export default function About() {
             >
               <div className="aspect-[4/5] rounded-sm overflow-hidden">
                 <img
-                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
+                  src={aboutImage}
                   alt="Crafting in the studio"
                   className="w-full h-full object-cover"
                 />
