@@ -83,10 +83,6 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [newMaterial, setNewMaterial] = useState("");
-  const [syncing, setSyncing] = useState(false);
-  const [syncResults, setSyncResults] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
 
 
   // Check admin access
@@ -191,54 +187,6 @@ export default function Admin() {
     }));
   };
 
-  const handlePreview = async () => {
-    setSyncing(true);
-    setPreviewData(null);
-    setSyncResults(null);
-    try {
-      const { data } = await base44.functions.invoke('syncEtsyListings', { preview: true });
-      
-      if (!data.success) {
-        if (data.graceful) {
-          alert(`Unable to connect to Etsy\n\n${data.error}\n\n${data.details || ''}\n\nYou can still manage your portfolio manually.`);
-        } else {
-          alert(`Error: ${data.error}\n\n${data.details || ''}`);
-        }
-      } else {
-        setPreviewData(data);
-        setShowPreview(true);
-      }
-    } catch (error) {
-      alert('Connection failed: ' + error.message + '\n\nYou can still manage your portfolio manually.');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleSync = async (mode = 'import') => {
-    setSyncing(true);
-    setSyncResults(null);
-    setShowPreview(false);
-    try {
-      const { data } = await base44.functions.invoke('syncEtsyListings', { mode });
-      
-      if (!data.success) {
-        if (data.graceful) {
-          alert(`Unable to sync with Etsy\n\n${data.error}\n\n${data.details || ''}`);
-        } else {
-          alert(`Sync failed: ${data.error}\n\n${data.details || ''}`);
-        }
-      } else {
-        setSyncResults({ ...data.results, mode });
-        queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
-      }
-    } catch (error) {
-      alert('Sync failed: ' + error.message);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
 
 
 
@@ -278,149 +226,15 @@ export default function Admin() {
 
           {/* Portfolio Tab */}
           <TabsContent value="portfolio">
-            {showPreview && previewData && (
-              <div className="mb-6 p-6 bg-white rounded-sm border-2 border-[#C4A962]">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-medium text-[#2D2D2D] text-lg mb-1">
-                      Etsy Sync Preview
-                    </h3>
-                    <p className="text-sm text-[#6B6B6B]">
-                      Found {previewData.total_detected} active listings
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPreview(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-green-50 p-4 rounded">
-                    <p className="text-2xl font-bold text-green-700">{previewData.stats.new_items}</p>
-                    <p className="text-xs text-green-700">New items to import</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded">
-                    <p className="text-2xl font-bold text-gray-600">{previewData.stats.already_imported}</p>
-                    <p className="text-xs text-gray-600">Already imported</p>
-                  </div>
-                </div>
-
-                {previewData.listings.length > 0 && (
-                  <div className="mb-4 max-h-60 overflow-y-auto space-y-2">
-                    {previewData.listings.slice(0, 20).map((listing, i) => (
-                      <div key={i} className="text-sm flex items-center justify-between py-2 px-3 bg-[#FAF9F7] rounded">
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className={listing.already_imported ? "text-gray-400" : "text-[#2D2D2D]"}>
-                            {listing.title}
-                          </span>
-                          {listing.already_imported && (
-                            <Badge variant="secondary" className="text-xs">Imported</Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-[#6B6B6B]">{listing.image_count} images</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleSync('import')}
-                    disabled={syncing || previewData.stats.new_items === 0}
-                    className="bg-[#C4A962] hover:bg-[#2D2D2D]"
-                  >
-                    {syncing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      `Import ${previewData.stats.new_items} New Items`
-                    )}
-                  </Button>
-                  {previewData.stats.already_imported > 0 && (
-                    <Button
-                      onClick={() => handleSync('refresh')}
-                      disabled={syncing}
-                      variant="outline"
-                    >
-                      {syncing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Refreshing...
-                        </>
-                      ) : (
-                        `Refresh ${previewData.stats.already_imported} Existing`
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {syncResults && (
-              <div className="mb-6 p-4 bg-white rounded-sm border border-[#E8E6E3]">
-                <h3 className="font-medium text-[#2D2D2D] mb-2">
-                  {syncResults.mode === 'refresh' ? 'Refresh Complete' : 'Import Complete'}
-                </h3>
-                <div className="text-sm text-[#6B6B6B] space-y-1">
-                  {syncResults.imported > 0 && (
-                    <p>✓ Imported {syncResults.imported} new items</p>
-                  )}
-                  {syncResults.updated > 0 && (
-                    <p>✓ Updated {syncResults.updated} existing items</p>
-                  )}
-                  {syncResults.skipped > 0 && (
-                    <p>• Skipped {syncResults.skipped} (already imported)</p>
-                  )}
-                  <p className="text-xs text-[#6B6B6B]/60 mt-2">
-                    Processed {syncResults.total} Etsy listings
-                  </p>
-                </div>
-                {syncResults.failed.length > 0 && (
-                  <details className="text-xs text-red-600 mt-3">
-                    <summary className="cursor-pointer font-medium">
-                      {syncResults.failed.length} failed
-                    </summary>
-                    <ul className="mt-2 space-y-1">
-                      {syncResults.failed.map((f, i) => (
-                        <li key={i}>{f.title}: {f.reason}</li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-              </div>
-            )}
             <div className="flex justify-between items-center mb-6">
               <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handlePreview}
-                  disabled={syncing}
-                  variant="outline"
-                  className="border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white"
-                >
-                  {syncing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Checking...
-                    </>
-                  ) : (
-                    "Sync from Etsy"
-                  )}
-                </Button>
-                <Button
-                  onClick={() => openDialog()}
-                  className="bg-[#2D2D2D] hover:bg-[#C4A962]"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Item
-                </Button>
-              </div>
+              <Button
+                onClick={() => openDialog()}
+                className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
             </div>
 
 
