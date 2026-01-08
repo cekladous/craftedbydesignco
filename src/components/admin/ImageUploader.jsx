@@ -7,6 +7,7 @@ import { Loader2, Upload, X, ImagePlus } from "lucide-react";
 export default function ImageUploader({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const uploadId = React.useId();
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -50,7 +51,7 @@ export default function ImageUploader({ images = [], onChange }) {
       {/* Upload Button - Prominent */}
       <div className="border-2 border-dashed border-[#E8E6E3] rounded-lg p-6 text-center hover:border-[#C4A962] transition-colors">
         <label
-          htmlFor={`file-upload-${Math.random()}`}
+          htmlFor={uploadId}
           className="cursor-pointer block"
         >
           <div className="flex flex-col items-center gap-3">
@@ -76,7 +77,7 @@ export default function ImageUploader({ images = [], onChange }) {
             )}
           </div>
           <input
-            id={`file-upload-${Math.random()}`}
+            id={uploadId}
             type="file"
             accept="image/*"
             onChange={handleFileUpload}
