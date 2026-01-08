@@ -45,23 +45,17 @@ Deno.serve(async (req) => {
 
     const results = {
       imported: 0,
-      updated: 0,
       skipped: 0,
       failed: [],
-      total: lines.length - 1
+      total: rows.length - 1
     };
 
-    // Get existing items for duplicate detection
+    // Load existing items for SKU deduplication
     const existingItems = await base44.asServiceRole.entities.PortfolioItem.filter({});
-    console.log(`Found ${existingItems.length} existing portfolio items`);
+    console.log(`Loaded ${existingItems.length} existing items`);
     
-    // Create lookup maps for duplicate detection
-    const itemsByTitle = new Map();
     const itemsBySku = new Map();
     for (const item of existingItems) {
-      if (item.name) {
-        itemsByTitle.set(item.name.toLowerCase().trim(), item);
-      }
       if (item.sku) {
         itemsBySku.set(item.sku.toLowerCase().trim(), item);
       }
@@ -69,10 +63,9 @@ Deno.serve(async (req) => {
 
     let displayOrder = existingItems.length;
 
-    // Process each row
+    // Process rows in batches
     for (let i = 1; i < rows.length; i++) {
       const rowNum = i + 1;
-      console.log(`Processing row ${rowNum}/${rows.length}...`);
       
       try {
         const values = rows[i];
@@ -82,21 +75,21 @@ Deno.serve(async (req) => {
           row[header] = values[idx] || '';
         });
 
-        // Skip empty rows
+        // Skip rows with empty title or SKU
         const title = row.TITLE?.trim() || '';
-        if (!title) {
-          console.log(`Row ${rowNum}: Skipping empty title`);
+        const sku = row.SKU?.trim() || '';
+        
+        if (!title || !sku) {
+          console.log(`Row ${rowNum}: Missing TITLE or SKU - skipping`);
           results.skipped++;
           continue;
         }
 
-        // Check for duplicates via SKU
-        const sku = row.SKU?.trim() || '';
-        let existingItem = null;
-        
-        if (sku && itemsBySku.has(sku.toLowerCase())) {
-          existingItem = itemsBySku.get(sku.toLowerCase());
-          console.log(`Row ${rowNum}: Found existing item by SKU: ${sku} - will update`);
+        // Check for duplicate SKU
+        if (itemsBySku.has(sku.toLowerCase())) {
+          console.log(`Row ${rowNum}: Duplicate SKU ${sku} - skipping`);
+          results.skipped++;
+          continue;
         }
 
         // Collect image URLs directly (no fetching/uploading)
