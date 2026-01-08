@@ -89,6 +89,7 @@ export default function Admin() {
   const [newMaterial, setNewMaterial] = useState("");
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState(null);
+  const [undoing, setUndoing] = useState(false);
   const [attachmentDialog, setAttachmentDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
