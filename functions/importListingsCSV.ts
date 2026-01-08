@@ -132,15 +132,17 @@ Deno.serve(async (req) => {
           // Update existing item
           await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, portfolioData);
           results.updated++;
+          results.updatedItems.push({ title, category, row: rowNum });
           console.log(`Row ${rowNum}: Updated "${title}"`);
         } else {
           // Create new item
-          await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
+          const newItem = await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
           results.imported++;
+          results.importedItems.push({ title, category, row: rowNum });
           console.log(`Row ${rowNum}: Created "${title}"`);
           
           // Register title to prevent duplicates in this batch
-          itemsByTitle.set(title.toLowerCase(), { name: title, id: null });
+          itemsByTitle.set(title.toLowerCase(), { name: title, id: newItem.id });
         }
 
         // Batch control: yield control periodically
