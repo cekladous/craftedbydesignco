@@ -149,12 +149,31 @@ export default function Admin() {
 
   const bulkDeleteItems = useMutation({
     mutationFn: async (ids) => {
-      await Promise.all(ids.map(id => base44.entities.PortfolioItem.delete(id)));
+      const results = await Promise.allSettled(
+        ids.map(async (id) => {
+          try {
+            await base44.entities.PortfolioItem.delete(id);
+            return { success: true, id };
+          } catch (error) {
+            return { success: false, id, error: error.message };
+          }
+        })
+      );
+      
+      const failed = results.filter(r => r.value && !r.value.success);
+      if (failed.length > 0) {
+        console.error('Failed to delete:', failed);
+      }
+      
+      return results;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
       setSelectedItems(new Set());
       setBulkDeleteMode(false);
+    },
+    onError: (error) => {
+      alert(`Delete failed: ${error.message}`);
     },
   });
 
