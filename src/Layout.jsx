@@ -106,6 +106,16 @@ export default function Layout({ children, currentPageName }) {
                   <Instagram className="w-5 h-5" />
                 </a>
                 <a
+                  href="https://www.facebook.com/CraftedbyDesignCo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`transition-colors duration-300 hover:text-[#C4A962] ${
+                    scrolled || !isHome ? "text-[#6B6B6B]" : "text-white/90"
+                  }`}
+                >
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a
                   href="https://craftedxdesignco.etsy.com"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -174,6 +184,14 @@ export default function Layout({ children, currentPageName }) {
                     className="text-[#6B6B6B] hover:text-[#C4A962] transition-colors"
                   >
                     <Instagram className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="https://www.facebook.com/CraftedbyDesignCo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#6B6B6B] hover:text-[#C4A962] transition-colors"
+                  >
+                    <Facebook className="w-5 h-5" />
                   </a>
                   <a
                     href="https://craftedxdesignco.etsy.com"
@@ -247,6 +265,14 @@ export default function Layout({ children, currentPageName }) {
                   className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"
                 >
                   Follow on Instagram
+                </a>
+                <a
+                  href="https://www.facebook.com/CraftedbyDesignCo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"
+                >
+                  Follow on Facebook
                 </a>
                 <a
                   href="mailto:craftedxdesignco@gmail.com"
