@@ -228,13 +228,30 @@ export default function Admin() {
           <TabsContent value="portfolio">
             <div className="flex justify-between items-center mb-6">
               <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
-              <Button
-                onClick={() => openDialog()}
-                className="bg-[#2D2D2D] hover:bg-[#C4A962]"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Item
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handlePreview}
+                  disabled={syncing}
+                  variant="outline"
+                  className="border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+                >
+                  {syncing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    "Preview Etsy Sync"
+                  )}
+                </Button>
+                <Button
+                  onClick={() => openDialog()}
+                  className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
             </div>
 
 
