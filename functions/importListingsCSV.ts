@@ -105,14 +105,14 @@ Deno.serve(async (req) => {
         
         console.log(`Row ${rowNum}: Found ${imageUrls.length} image URLs`);
 
-        // Parse materials (comma-separated)
+        // Parse materials (comma or pipe separated, handle quotes)
         const materials = row.MATERIALS 
-          ? row.MATERIALS.split(',').map(m => m.trim()).filter(m => m.length > 0)
+          ? row.MATERIALS.split(/[,|]/).map(m => m.replace(/^["']|["']$/g, '').trim()).filter(m => m.length > 0)
           : [];
 
-        // Parse tags (comma-separated)
+        // Parse tags (comma or pipe separated, handle quotes)
         const tags = row.TAGS 
-          ? row.TAGS.split(',').map(t => t.trim()).filter(t => t.length > 0)
+          ? row.TAGS.split(/[,|]/).map(t => t.replace(/^["']|["']$/g, '').trim()).filter(t => t.length > 0)
           : [];
 
         // Auto-categorize based on title/tags
