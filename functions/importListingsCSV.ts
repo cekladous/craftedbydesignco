@@ -50,7 +50,9 @@ Deno.serve(async (req) => {
       failed: [],
       total: rows.length - 1,
       importedItems: [],
-      updatedItems: []
+      updatedItems: [],
+      createdIds: [],
+      previousState: []
     };
 
     // Load existing items for TITLE-based deduplication
