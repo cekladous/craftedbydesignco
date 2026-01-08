@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import * as XLSX from 'npm:xlsx@0.18.5';
 
 const BATCH_SIZE = 25; // Process rows in batches to prevent timeouts
 
@@ -11,16 +12,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const { csvContent } = await req.json();
+    const { fileContent, fileType } = await req.json();
 
-    if (!csvContent || typeof csvContent !== 'string') {
-      return Response.json({ error: 'No CSV content provided' }, { status: 400 });
+    if (!fileContent || typeof fileContent !== 'string') {
+      return Response.json({ error: 'No file content provided' }, { status: 400 });
     }
 
-    console.log('=== CSV IMPORT STARTED ===');
+    console.log(`=== ${fileType?.toUpperCase() || 'CSV'} IMPORT STARTED ===`);
 
-    // Parse CSV with RFC 4180-compliant parser
-    const rows = parseCSV(csvContent);
+    // Parse file based on type
+    let rows;
+    if (fileType === 'xlsx') {
+      rows = parseExcel(fileContent);
+    } else {
+      rows = parseCSV(fileContent);
+    }
     
     if (rows.length < 2) {
       return Response.json({ 
@@ -189,6 +195,33 @@ Deno.serve(async (req) => {
     }, { status: 500 });
   }
 });
+
+// Parse Excel file from base64 string
+function parseExcel(base64String) {
+  try {
+    // Decode base64 to binary
+    const binaryString = atob(base64String);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Parse Excel workbook
+    const workbook = XLSX.read(bytes, { type: 'array' });
+    
+    // Get first sheet
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // Convert to array of arrays
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: '' });
+    
+    return jsonData;
+  } catch (error) {
+    console.error('Excel parsing error:', error);
+    throw new Error(`Failed to parse Excel file: ${error.message}`);
+  }
+}
 
 // Parse entire CSV handling quoted fields and multiline values
 function parseCSV(csvText) {

@@ -296,8 +296,9 @@ export default function Admin() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      alert('Please upload a .csv file');
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx')) {
+      alert('Please upload a .csv or .xlsx file');
       return;
     }
 
@@ -305,16 +306,36 @@ export default function Admin() {
     setImportResults(null);
 
     try {
-      const csvContent = await file.text();
+      let fileContent;
+      let fileType;
 
-      // Validate CSV format
-      const firstLine = csvContent.split('\n')[0].toUpperCase();
-      if (!firstLine.includes('TITLE')) {
-        throw new Error('Invalid CSV: Missing required header (TITLE)');
+      if (fileName.endsWith('.xlsx')) {
+        // For Excel files, convert to base64
+        const arrayBuffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        fileContent = btoa(binary);
+        fileType = 'xlsx';
+      } else {
+        // For CSV files, read as text
+        fileContent = await file.text();
+        fileType = 'csv';
+
+        // Validate CSV format
+        const firstLine = fileContent.split('\n')[0].toUpperCase();
+        if (!firstLine.includes('TITLE')) {
+          throw new Error('Invalid CSV: Missing required header (TITLE)');
+        }
       }
 
-      console.log('Uploading CSV to import function...');
-      const response = await base44.functions.invoke('importListingsCSV', { csvContent });
+      console.log(`Uploading ${fileType.toUpperCase()} to import function...`);
+      const response = await base44.functions.invoke('importListingsCSV', { 
+        fileContent, 
+        fileType 
+      });
 
       if (!response?.data) {
         throw new Error('Import function returned no data');
@@ -342,15 +363,15 @@ export default function Admin() {
       } else {
         alert(`Import Successful\n\n✓ Created: ${imported}\n↻ Updated: ${updated}`);
       }
-    } catch (error) {
-      console.error('CSV Import Error:', error);
-      alert(`CSV Import Failed\n\n${error.message}\n\nPlease check:\n• CSV has TITLE column\n• File is valid UTF-8 text\n• Network connection is stable`);
+      } catch (error) {
+      console.error('File Import Error:', error);
+      alert(`File Import Failed\n\n${error.message}\n\nPlease check:\n• File has TITLE column\n• File is valid CSV/Excel format\n• Network connection is stable`);
       setImportResults(null);
-    } finally {
+      } finally {
       setImporting(false);
       e.target.value = '';
-    }
-  };
+      }
+      };
 
 
 
@@ -448,14 +469,14 @@ export default function Admin() {
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Import Listings CSV
+                      Import CSV/Excel
                     </>
                   )}
                 </label>
                 <input
                   id="csv-upload"
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx"
                   onChange={handleCsvUpload}
                   disabled={importing}
                   className="hidden"
