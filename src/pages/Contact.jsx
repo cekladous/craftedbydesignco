@@ -334,21 +334,6 @@ export default function Contact() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="message" className="text-xs tracking-widest uppercase text-[#6B6B6B]">
-                    Tell Us About Your Project *
-                  </Label>
-                  <Textarea
-                    id="message"
-                    value={formData.message}
-                    onChange={(e) => handleChange("message", e.target.value)}
-                    required
-                    rows={5}
-                    placeholder="Describe your vision, quantities needed, any specific requirements..."
-                    className="border-[#E8E6E3] focus:border-[#C4A962] focus:ring-[#C4A962] resize-none"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label className="text-xs tracking-widest uppercase text-[#6B6B6B]">
                     Upload Inspiration Photos (Optional)
                   </Label>
@@ -409,6 +394,21 @@ export default function Contact() {
                       ))}
                     </div>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="message" className="text-xs tracking-widest uppercase text-[#6B6B6B]">
+                    Tell Us About Your Project *
+                  </Label>
+                  <Textarea
+                    id="message"
+                    value={formData.message}
+                    onChange={(e) => handleChange("message", e.target.value)}
+                    required
+                    rows={5}
+                    placeholder="Describe your vision, quantities needed, any specific requirements..."
+                    className="border-[#E8E6E3] focus:border-[#C4A962] focus:ring-[#C4A962] resize-none"
+                  />
                 </div>
 
                 <Button
