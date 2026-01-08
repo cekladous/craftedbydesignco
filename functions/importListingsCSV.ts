@@ -18,6 +18,7 @@ function cleanText(text) {
     .replace(/Ã‚Â°/g, '°')
     // Fix the specific patterns mentioned
     .replace(/Äì/g, '—')
+    .replace(/Äî/g, '"')
     .replace(/Äô[sS]/g, "'s")
     .replace(/Äôt/g, "'t")
     .replace(/Äôre/g, "'re")
@@ -29,6 +30,10 @@ function cleanText(text) {
     .replace(/-18‚/g, "'")
     .replace(/ú®/g, '®')
     .replace(/úâ„¢/g, '™')
+    .replace(/√©/g, 'é')
+    .replace(/√®/g, 'î')
+    .replace(/√°/g, 'à')
+    .replace(/√¢/g, 'â')
     // Additional common patterns
     .replace(/â€™/g, "'")
     .replace(/â€œ/g, '"')
@@ -49,10 +54,16 @@ function cleanText(text) {
     .replace(/Ã¹/g, 'ù')
     .replace(/Ã­/g, 'í')
     .replace(/Ã±/g, 'ñ')
-    // Clean up spacing - normalize multiple spaces/newlines to single space
-    .replace(/\s+/g, ' ')
-    // Fix paragraph breaks - convert double line breaks to proper spacing
-    .replace(/\n\n+/g, '\n\n')
+    // Preserve paragraph breaks first (convert to placeholder)
+    .replace(/\n\n+/g, '<<<PARAGRAPH_BREAK>>>')
+    // Clean up excessive spaces on each line
+    .replace(/[ \t]+/g, ' ')
+    // Remove spaces around line breaks
+    .replace(/\s*\n\s*/g, '\n')
+    // Restore paragraph breaks
+    .replace(/<<<PARAGRAPH_BREAK>>>/g, '\n\n')
+    // Clean up multiple consecutive line breaks (3 or more becomes 2)
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
