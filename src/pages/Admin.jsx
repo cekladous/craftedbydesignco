@@ -41,6 +41,8 @@ import {
 import ImageUploader from "@/components/admin/ImageUploader";
 import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
 import SiteSettingsManager from "@/components/admin/SiteSettingsManager";
+import AttachmentsManager from "@/components/admin/AttachmentsManager";
+import AttachmentSelector from "@/components/admin/AttachmentSelector";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -71,6 +73,7 @@ const emptyItem = {
   featured: false,
   visible: true,
   display_order: 0,
+  attachments: [],
 };
 
 export default function Admin() {
@@ -87,6 +90,7 @@ export default function Admin() {
   const [syncResults, setSyncResults] = useState(null);
   const [previewData, setPreviewData] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [attachmentDialog, setAttachmentDialog] = useState(false);
 
 
   // Check admin access
@@ -258,6 +262,7 @@ export default function Admin() {
             <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
             <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
             <TabsTrigger value="homepage">Homepage Settings</TabsTrigger>
+            <TabsTrigger value="attachments">Attachments</TabsTrigger>
             <TabsTrigger value="inquiries">
               Inquiries
               {inquiries.filter((i) => i.status === "new").length > 0 && (
@@ -492,6 +497,11 @@ export default function Admin() {
             <SiteSettingsManager />
           </TabsContent>
 
+          {/* Attachments Tab */}
+          <TabsContent value="attachments">
+            <AttachmentsManager />
+          </TabsContent>
+
           {/* Inquiries Tab */}
           <TabsContent value="inquiries">
             {inquiriesLoading ? (
@@ -713,6 +723,19 @@ export default function Admin() {
                 />
                 <p className="text-xs text-[#6B6B6B]">
                   If provided, "View on Etsy" button will appear alongside "Request Custom Quote"
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>File Attachments (Optional)</Label>
+                <AttachmentSelector
+                  selectedIds={formData.attachments || []}
+                  onChange={(ids) => setFormData({ ...formData, attachments: ids })}
+                  open={attachmentDialog}
+                  onOpenChange={setAttachmentDialog}
+                />
+                <p className="text-xs text-[#6B6B6B]">
+                  Attach PDFs, catalogs, or other files to this portfolio item
                 </p>
               </div>
 
