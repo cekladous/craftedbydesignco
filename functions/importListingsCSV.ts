@@ -214,35 +214,63 @@ Deno.serve(async (req) => {
   }
 });
 
-// Parse a CSV line handling quoted fields
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
+// Parse entire CSV handling quoted fields and multiline values
+function parseCSV(csvText) {
+  const rows = [];
+  let currentRow = [];
+  let currentField = '';
   let inQuotes = false;
   
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    const nextChar = line[i + 1];
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
     
     if (char === '"') {
       if (inQuotes && nextChar === '"') {
-        // Escaped quote
-        current += '"';
+        // Escaped quote within quoted field
+        currentField += '"';
         i++;
       } else {
         // Toggle quote mode
         inQuotes = !inQuotes;
       }
     } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
+      // End of field
+      currentRow.push(currentField.trim());
+      currentField = '';
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      // End of row (handle \r\n, \n, or \r)
+      if (char === '\r' && nextChar === '\n') {
+        i++; // Skip the \n in \r\n
+      }
+      
+      // Only add row if we have content
+      if (currentField.length > 0 || currentRow.length > 0) {
+        currentRow.push(currentField.trim());
+        
+        // Skip completely empty rows
+        if (currentRow.some(field => field.length > 0)) {
+          rows.push(currentRow);
+        }
+        
+        currentRow = [];
+        currentField = '';
+      }
     } else {
-      current += char;
+      // Regular character
+      currentField += char;
     }
   }
   
-  result.push(current.trim());
-  return result;
+  // Handle last field/row if exists
+  if (currentField.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentField.trim());
+    if (currentRow.some(field => field.length > 0)) {
+      rows.push(currentRow);
+    }
+  }
+  
+  return rows;
 }
 
 // Fetch image from URL and upload to storage with timeout
