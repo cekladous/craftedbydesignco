@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Heart, Award, ArrowRight, Instagram } from "lucide-react";
+import { MapPin, Heart, Award, ArrowRight, Instagram, Facebook } from "lucide-react";
 
 export default function About() {
   const { data: settings } = useQuery({

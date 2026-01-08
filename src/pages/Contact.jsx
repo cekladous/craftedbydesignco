@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/select";
 import { 
   Mail, 
-  Instagram, 
+  Instagram,
+  Facebook, 
   ExternalLink, 
   CheckCircle2,
   Loader2,
