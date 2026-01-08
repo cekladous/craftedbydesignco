@@ -198,24 +198,26 @@ export default function Admin() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const mode = confirm(
-      "Do you want to UPDATE existing items with matching titles?\n\n" +
-      "OK = Update existing items\n" +
-      "Cancel = Only create new items (skip duplicates)"
-    ) ? 'update' : 'create';
-
     setImporting(true);
     setImportResults(null);
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('mode', mode);
-
-      const { data } = await base44.functions.invoke('importEtsyCsv', formData);
+      // Read CSV content as text
+      const csvContent = await file.text();
       
-      if (data.success === false) {
-        alert(`CSV Import Failed\n\n${data.error}\n\n${data.details || ''}`);
+      // Validate it looks like a CSV with expected headers
+      const firstLine = csvContent.split('\n')[0].toUpperCase();
+      if (!firstLine.includes('TITLE')) {
+        alert('Invalid CSV: Missing TITLE column header');
+        setImporting(false);
+        e.target.value = '';
+        return;
+      }
+
+      const { data } = await base44.functions.invoke('importListingsCSV', { csvContent });
+      
+      if (data.success === false || data.error) {
+        alert(`CSV Import Failed\n\n${data.error || 'Unknown error'}`);
       } else {
         setImportResults(data.results);
         queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
@@ -285,7 +287,7 @@ export default function Admin() {
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Upload Etsy CSV
+                      Upload Listings CSV
                     </>
                   )}
                 </label>
