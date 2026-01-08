@@ -37,6 +37,7 @@ import {
   Mail,
   Calendar,
   MessageSquare,
+  Upload,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
@@ -86,10 +87,8 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [newMaterial, setNewMaterial] = useState("");
-  const [syncing, setSyncing] = useState(false);
-  const [syncResults, setSyncResults] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState(null);
   const [attachmentDialog, setAttachmentDialog] = useState(false);
 
 
@@ -195,43 +194,37 @@ export default function Admin() {
     }));
   };
 
-  const handlePreview = async () => {
-    setSyncing(true);
-    setPreviewData(null);
-    setShowPreview(false);
-    try {
-      const { data } = await base44.functions.invoke('syncEtsyListings', { preview: true });
-      
-      if (data.success === false) {
-        alert(`Etsy Sync Preview Failed\n\n${data.error}\n\n${data.details || ''}`);
-      } else {
-        setPreviewData(data);
-        setShowPreview(true);
-      }
-    } catch (error) {
-      alert('Preview failed: ' + error.message);
-    } finally {
-      setSyncing(false);
-    }
-  };
+  const handleCsvUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleSync = async (mode = 'import') => {
-    setSyncing(true);
-    setSyncResults(null);
-    setShowPreview(false);
+    const mode = confirm(
+      "Do you want to UPDATE existing items with matching titles?\n\n" +
+      "OK = Update existing items\n" +
+      "Cancel = Only create new items (skip duplicates)"
+    ) ? 'update' : 'create';
+
+    setImporting(true);
+    setImportResults(null);
+    
     try {
-      const { data } = await base44.functions.invoke('syncEtsyListings', { mode });
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mode', mode);
+
+      const { data } = await base44.functions.invoke('importEtsyCsv', formData);
       
       if (data.success === false) {
-        alert(`Etsy Sync Failed\n\n${data.error}\n\n${data.details || ''}`);
+        alert(`CSV Import Failed\n\n${data.error}\n\n${data.details || ''}`);
       } else {
-        setSyncResults({ ...data.results, mode });
+        setImportResults(data.results);
         queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
       }
     } catch (error) {
-      alert('Sync failed: ' + error.message);
+      alert('Import failed: ' + error.message);
     } finally {
-      setSyncing(false);
+      setImporting(false);
+      e.target.value = '';
     }
   };
 
@@ -278,21 +271,32 @@ export default function Admin() {
             <div className="flex justify-between items-center mb-6">
               <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
               <div className="flex gap-2">
-                <Button
-                  onClick={handlePreview}
-                  disabled={syncing}
-                  variant="outline"
-                  className="border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+                <label
+                  htmlFor="csv-upload"
+                  className={`inline-flex items-center gap-2 px-4 py-2 border border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white rounded-md cursor-pointer transition-colors ${
+                    importing ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  {syncing ? (
+                  {importing ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Checking...
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Importing...
                     </>
                   ) : (
-                    "Preview Etsy Sync"
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Upload Etsy CSV
+                    </>
                   )}
-                </Button>
+                </label>
+                <input
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvUpload}
+                  disabled={importing}
+                  className="hidden"
+                />
                 <Button
                   onClick={() => openDialog()}
                   className="bg-[#2D2D2D] hover:bg-[#C4A962]"
@@ -303,100 +307,29 @@ export default function Admin() {
               </div>
             </div>
 
-            {showPreview && previewData && (
-              <div className="mb-6 p-6 bg-white rounded-sm border-2 border-[#C4A962] shadow-sm">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-medium text-[#2D2D2D] text-lg mb-1">
-                      Etsy Sync Preview
-                    </h3>
-                    <p className="text-sm text-[#6B6B6B]">
-                      Found {previewData.total_detected} active listing{previewData.total_detected !== 1 ? 's' : ''} on Etsy
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPreview(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-green-50 p-4 rounded">
-                    <p className="text-2xl font-bold text-green-700">{previewData.stats.new_items}</p>
-                    <p className="text-xs text-green-700">New items to import</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded">
-                    <p className="text-2xl font-bold text-gray-600">{previewData.stats.already_imported}</p>
-                    <p className="text-xs text-gray-600">Already imported</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  {previewData.stats.new_items > 0 && (
-                    <Button
-                      onClick={() => handleSync('import')}
-                      disabled={syncing}
-                      className="bg-[#C4A962] hover:bg-[#2D2D2D]"
-                    >
-                      {syncing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Importing...
-                        </>
-                      ) : (
-                        `Import ${previewData.stats.new_items} New`
-                      )}
-                    </Button>
-                  )}
-                  {previewData.stats.already_imported > 0 && (
-                    <Button
-                      onClick={() => handleSync('refresh')}
-                      disabled={syncing}
-                      variant="outline"
-                    >
-                      {syncing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Refreshing...
-                        </>
-                      ) : (
-                        `Refresh ${previewData.stats.already_imported} Existing`
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {syncResults && (
+            {importResults && (
               <div className="mb-6 p-4 bg-white rounded-sm border border-[#E8E6E3]">
                 <h3 className="font-medium text-[#2D2D2D] mb-2">
-                  {syncResults.mode === 'refresh' ? 'Refresh Complete' : 'Import Complete'}
+                  CSV Import Complete
                 </h3>
                 <div className="text-sm text-[#6B6B6B] space-y-1">
-                  {syncResults.imported > 0 && (
-                    <p>✓ Imported {syncResults.imported} new items</p>
+                  {importResults.imported > 0 && (
+                    <p>✓ Imported {importResults.imported} new items</p>
                   )}
-                  {syncResults.updated > 0 && (
-                    <p>✓ Updated {syncResults.updated} existing items</p>
+                  {importResults.updated > 0 && (
+                    <p>✓ Updated {importResults.updated} existing items</p>
                   )}
-                  {syncResults.skipped > 0 && (
-                    <p>• Skipped {syncResults.skipped} (already imported)</p>
+                  {importResults.skipped > 0 && (
+                    <p>• Skipped {importResults.skipped} duplicates</p>
                   )}
-                  <p className="text-xs text-[#6B6B6B]/60 mt-2">
-                    Processed {syncResults.total} Etsy listings
-                  </p>
                 </div>
-                {syncResults.failed?.length > 0 && (
+                {importResults.failed?.length > 0 && (
                   <details className="text-xs text-red-600 mt-3">
                     <summary className="cursor-pointer font-medium">
-                      {syncResults.failed.length} failed
+                      {importResults.failed.length} failed
                     </summary>
                     <ul className="mt-2 space-y-1">
-                      {syncResults.failed.map((f, i) => (
+                      {importResults.failed.map((f, i) => (
                         <li key={i}>{f.title}: {f.reason}</li>
                       ))}
                     </ul>
