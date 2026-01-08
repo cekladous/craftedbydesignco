@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
           tags: tags.map(t => cleanText(t)),
           sku: sku,
           images: imageUrls,
-          etsy_url: row.URL?.trim() || row.ETSY_URL?.trim() || '',
+          etsy_url: row['ETSY LISTING URL']?.trim() || row.URL?.trim() || row.ETSY_URL?.trim() || '',
           category: category,
           customization_options: cleanText(row.CUSTOMIZATION_OPTIONS?.trim() || ''),
           featured: existingItem?.featured || false,
