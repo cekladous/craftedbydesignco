@@ -300,7 +300,7 @@ export default function Admin() {
       if (failed?.length > 0) {
         alert(`Import Completed with Errors\n\n✓ Created: ${imported}\n⊘ Skipped: ${skipped}\n✗ Failed: ${failed.length}\n\nCheck the summary below for details.`);
       } else if (imported === 0 && skipped > 0) {
-        alert(`No New Items Imported\n\nAll ${skipped} rows were duplicates (SKUs already exist).`);
+        alert(`No New Items Imported\n\nAll ${skipped} rows were duplicates (titles already exist).`);
       } else {
         alert(`Import Successful\n\n✓ Created: ${imported}\n⊘ Skipped: ${skipped}`);
       }
