@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
 
     const results = {
       imported: 0,
+      updated: 0,
       skipped: 0,
       failed: [],
       total: rows.length - 1
