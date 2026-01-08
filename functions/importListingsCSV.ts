@@ -64,12 +64,12 @@ Deno.serve(async (req) => {
     let displayOrder = existingItems.length;
 
     // Process each row
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       const rowNum = i + 1;
-      console.log(`Processing row ${rowNum}/${lines.length}...`);
+      console.log(`Processing row ${rowNum}/${rows.length}...`);
       
       try {
-        const values = parseCSVLine(lines[i]);
+        const values = rows[i];
         const row = {};
         
         headers.forEach((header, idx) => {
