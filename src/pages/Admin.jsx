@@ -449,22 +449,49 @@ export default function Admin() {
                 
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   {importResults.imported > 0 && (
-                    <div className="bg-green-50 p-3 rounded">
-                      <p className="text-2xl font-bold text-green-700">{importResults.imported}</p>
-                      <p className="text-xs text-green-700">Created</p>
-                    </div>
+                    <details className="bg-green-50 p-3 rounded cursor-pointer">
+                      <summary className="cursor-pointer">
+                        <p className="text-2xl font-bold text-green-700 inline">{importResults.imported}</p>
+                        <p className="text-xs text-green-700 inline ml-2">Created (click to view)</p>
+                      </summary>
+                      <ul className="mt-2 space-y-1 text-xs text-green-800 max-h-48 overflow-y-auto">
+                        {importResults.importedItems?.map((item, i) => (
+                          <li key={i} className="pl-2 border-l-2 border-green-300">
+                            <strong>{item.title}</strong> ({item.category})
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
                   )}
                   {importResults.updated > 0 && (
-                    <div className="bg-blue-50 p-3 rounded">
-                      <p className="text-2xl font-bold text-blue-700">{importResults.updated}</p>
-                      <p className="text-xs text-blue-700">Updated</p>
-                    </div>
+                    <details className="bg-blue-50 p-3 rounded cursor-pointer">
+                      <summary className="cursor-pointer">
+                        <p className="text-2xl font-bold text-blue-700 inline">{importResults.updated}</p>
+                        <p className="text-xs text-blue-700 inline ml-2">Updated (click to view)</p>
+                      </summary>
+                      <ul className="mt-2 space-y-1 text-xs text-blue-800 max-h-48 overflow-y-auto">
+                        {importResults.updatedItems?.map((item, i) => (
+                          <li key={i} className="pl-2 border-l-2 border-blue-300">
+                            <strong>{item.title}</strong> ({item.category})
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
                   )}
                   {importResults.failed?.length > 0 && (
-                    <div className="bg-red-50 p-3 rounded">
-                      <p className="text-2xl font-bold text-red-700">{importResults.failed.length}</p>
-                      <p className="text-xs text-red-700">Failed</p>
-                    </div>
+                    <details className="bg-red-50 p-3 rounded cursor-pointer">
+                      <summary className="cursor-pointer">
+                        <p className="text-2xl font-bold text-red-700 inline">{importResults.failed.length}</p>
+                        <p className="text-xs text-red-700 inline ml-2">Failed (click to view)</p>
+                      </summary>
+                      <ul className="mt-2 space-y-1 text-xs text-red-800 max-h-48 overflow-y-auto">
+                        {importResults.failed.map((f, i) => (
+                          <li key={i} className="pl-2 border-l-2 border-red-300">
+                            <strong>Row {f.row}</strong> ({f.title}): {f.reason}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
                   )}
                 </div>
 
