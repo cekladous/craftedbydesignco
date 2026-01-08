@@ -84,55 +84,26 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Check for duplicates
+        // Check for duplicates via SKU
         const sku = row.SKU?.trim() || '';
         let existingItem = null;
         
-        // First try SKU match (most reliable)
         if (sku && itemsBySku.has(sku.toLowerCase())) {
           existingItem = itemsBySku.get(sku.toLowerCase());
-          console.log(`Row ${rowNum}: Found existing item by SKU: ${sku}`);
-        }
-        // Then try title match
-        else if (itemsByTitle.has(title.toLowerCase())) {
-          existingItem = itemsByTitle.get(title.toLowerCase());
-          console.log(`Row ${rowNum}: Found existing item by title: ${title}`);
+          console.log(`Row ${rowNum}: Found existing item by SKU: ${sku} - will update`);
         }
 
-        // Process images - fetch and upload each one with timeout
+        // Collect image URLs directly (no fetching/uploading)
         const imageUrls = [];
-        const imageFields = [];
         for (let imgNum = 1; imgNum <= 10; imgNum++) {
           const imgField = `IMAGE${imgNum}`;
           const imgUrl = row[imgField]?.trim();
-          if (imgUrl) {
-            imageFields.push({ num: imgNum, url: imgUrl });
+          if (imgUrl && imgUrl.startsWith('http')) {
+            imageUrls.push(imgUrl);
           }
         }
-
-        console.log(`Row ${rowNum}: Processing ${imageFields.length} images...`);
         
-        for (const imgField of imageFields) {
-          try {
-            // If updating, check if we already have this image URL
-            if (existingItem && existingItem.images?.includes(imgField.url)) {
-              console.log(`Row ${rowNum}: Image ${imgField.num} already exists, skipping`);
-              imageUrls.push(imgField.url);
-              continue;
-            }
-
-            const uploadedUrl = await fetchAndUploadImageWithTimeout(imgField.url, base44, 15000);
-            if (uploadedUrl) {
-              imageUrls.push(uploadedUrl);
-              console.log(`Row ${rowNum}: Successfully uploaded image ${imgField.num}`);
-            } else {
-              console.log(`Row ${rowNum}: Failed to upload image ${imgField.num} (timeout or error)`);
-            }
-          } catch (imgError) {
-            console.log(`Row ${rowNum}: Error with image ${imgField.num}: ${imgError.message}`);
-            // Continue without this image
-          }
-        }
+        console.log(`Row ${rowNum}: Found ${imageUrls.length} image URLs`);
 
         // Parse materials (comma-separated)
         const materials = row.MATERIALS 
