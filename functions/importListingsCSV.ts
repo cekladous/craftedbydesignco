@@ -26,6 +26,7 @@ function cleanText(text) {
     .replace(/Äôve/g, "'ve")
     .replace(/Äôd/g, "'d")
     .replace(/Äù/g, "'")
+    .replace(/Äú/g, '"')
     .replace(/Ä¢/g, '"')
     .replace(/-18‚/g, "'")
     .replace(/ú®/g, '®')
