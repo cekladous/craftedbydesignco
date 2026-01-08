@@ -45,6 +45,7 @@ import SiteSettingsManager from "@/components/admin/SiteSettingsManager";
 import AttachmentsManager from "@/components/admin/AttachmentsManager";
 import AttachmentSelector from "@/components/admin/AttachmentSelector";
 import SpecialtiesManager from "@/components/admin/SpecialtiesManager";
+import ExperienceManager from "@/components/admin/ExperienceManager";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -402,6 +403,7 @@ export default function Admin() {
             <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
             <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
             <TabsTrigger value="specialties">Specialties</TabsTrigger>
+            <TabsTrigger value="experience">Experience</TabsTrigger>
             <TabsTrigger value="homepage">Homepage Settings</TabsTrigger>
             <TabsTrigger value="attachments">Attachments</TabsTrigger>
             <TabsTrigger value="inquiries">
@@ -683,6 +685,11 @@ export default function Admin() {
           {/* Specialties Tab */}
           <TabsContent value="specialties">
             <SpecialtiesManager />
+          </TabsContent>
+
+          {/* Experience Tab */}
+          <TabsContent value="experience">
+            <ExperienceManager />
           </TabsContent>
 
           {/* Homepage Settings Tab */}

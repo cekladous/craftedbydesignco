@@ -6,6 +6,46 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Heart, Award, ArrowRight, Instagram, Facebook } from "lucide-react";
 
+function ExperienceList() {
+  const { data: items = [] } = useQuery({
+    queryKey: ["experience-items"],
+    queryFn: async () => {
+      const results = await base44.entities.ExperienceItem.filter({ visible: true });
+      return results.sort((a, b) => a.display_order - b.display_order);
+    },
+  });
+
+  if (items.length === 0) {
+    return (
+      <ul className="space-y-4 mb-8">
+        <li className="flex items-start gap-3 text-[#6B6B6B]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
+          Brides & wedding planners seeking unique signage
+        </li>
+        <li className="flex items-start gap-3 text-[#6B6B6B]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
+          New parents celebrating life's milestones
+        </li>
+        <li className="flex items-start gap-3 text-[#6B6B6B]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
+          Businesses looking for branded merchandise
+        </li>
+      </ul>
+    );
+  }
+
+  return (
+    <ul className="space-y-4 mb-8">
+      {items.map((item) => (
+        <li key={item.id} className="flex items-start gap-3 text-[#6B6B6B]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
+          {item.text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function About() {
   const { data: settings } = useQuery({
     queryKey: ["site-settings-home"],
@@ -209,20 +249,7 @@ export default function About() {
                 From intimate weddings to large corporate events, we've had the 
                 privilege of creating pieces for a wide range of clients and occasions.
               </p>
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Brides & wedding planners seeking unique signage",
-                  "New parents celebrating life's milestones",
-                  "Businesses looking for branded merchandise",
-                  "Gift-givers searching for something personal",
-                  "Event planners creating memorable experiences",
-                ].map((item, index) => (
-                  <li key={index} className="flex items-start gap-3 text-[#6B6B6B]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <ExperienceList />
             </motion.div>
           </div>
         </div>
