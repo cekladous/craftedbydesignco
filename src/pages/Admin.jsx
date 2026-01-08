@@ -271,8 +271,8 @@ export default function Admin() {
 
       // Validate CSV format
       const firstLine = csvContent.split('\n')[0].toUpperCase();
-      if (!firstLine.includes('TITLE') || !firstLine.includes('SKU')) {
-        throw new Error('Invalid CSV: Missing required headers (TITLE, SKU)');
+      if (!firstLine.includes('TITLE')) {
+        throw new Error('Invalid CSV: Missing required header (TITLE)');
       }
 
       console.log('Uploading CSV to import function...');
