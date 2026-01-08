@@ -134,8 +134,8 @@ Deno.serve(async (req) => {
         results.imported++;
         console.log(`Row ${rowNum}: Created "${title}"`);
         
-        // Register SKU to prevent duplicates in this batch
-        itemsBySku.set(sku.toLowerCase(), { sku });
+        // Register title to prevent duplicates in this batch
+        itemsByTitle.set(title.toLowerCase(), { name: title });
 
         // Batch control: yield control periodically
         if (i % BATCH_SIZE === 0) {
