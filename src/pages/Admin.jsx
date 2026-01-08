@@ -454,10 +454,10 @@ export default function Admin() {
                       <p className="text-xs text-green-700">Created</p>
                     </div>
                   )}
-                  {importResults.skipped > 0 && (
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-2xl font-bold text-gray-600">{importResults.skipped}</p>
-                      <p className="text-xs text-gray-600">Skipped (duplicates)</p>
+                  {importResults.updated > 0 && (
+                    <div className="bg-blue-50 p-3 rounded">
+                      <p className="text-2xl font-bold text-blue-700">{importResults.updated}</p>
+                      <p className="text-xs text-blue-700">Updated</p>
                     </div>
                   )}
                   {importResults.failed?.length > 0 && (
