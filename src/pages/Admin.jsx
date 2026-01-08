@@ -149,9 +149,7 @@ export default function Admin() {
 
   const bulkDeleteItems = useMutation({
     mutationFn: async (ids) => {
-      for (const id of ids) {
-        await base44.entities.PortfolioItem.delete(id);
-      }
+      await Promise.all(ids.map(id => base44.entities.PortfolioItem.delete(id)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
