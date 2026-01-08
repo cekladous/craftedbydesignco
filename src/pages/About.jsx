@@ -8,9 +8,9 @@ import { MapPin, Heart, Award, ArrowRight, Instagram } from "lucide-react";
 
 export default function About() {
   const { data: settings } = useQuery({
-    queryKey: ["site-settings", "about"],
+    queryKey: ["site-settings-home"],
     queryFn: async () => {
-      const results = await base44.entities.SiteSettings.filter({ setting_key: "about" });
+      const results = await base44.entities.SiteSettings.filter({ setting_key: "home_hero" });
       return results[0] || {};
     },
   });
