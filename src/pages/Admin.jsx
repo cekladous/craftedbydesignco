@@ -499,20 +499,7 @@ export default function Admin() {
                   Processed {importResults.total} rows from CSV
                 </p>
 
-                {importResults.failed?.length > 0 && (
-                  <details className="mt-4 p-3 bg-red-50 rounded">
-                    <summary className="cursor-pointer font-medium text-sm text-red-700">
-                      ⚠ {importResults.failed.length} items failed to import
-                    </summary>
-                    <ul className="mt-2 space-y-1 text-xs text-red-600">
-                      {importResults.failed.map((f, i) => (
-                        <li key={i}>
-                          <strong>Row {f.row}</strong> ({f.title}): {f.reason}
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
+
               </div>
             )}
 
