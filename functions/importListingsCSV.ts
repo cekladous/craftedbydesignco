@@ -131,6 +131,12 @@ Deno.serve(async (req) => {
         };
 
         if (existingItem) {
+          // Store previous state for undo
+          results.previousState.push({
+            id: existingItem.id,
+            data: { ...existingItem }
+          });
+          
           // Update existing item
           await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, portfolioData);
           results.updated++;
@@ -141,6 +147,7 @@ Deno.serve(async (req) => {
           const newItem = await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
           results.imported++;
           results.importedItems.push({ title, category, row: rowNum });
+          results.createdIds.push(newItem.id);
           console.log(`Row ${rowNum}: Created "${title}"`);
           
           // Register title to prevent duplicates in this batch
