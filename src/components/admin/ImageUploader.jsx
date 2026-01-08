@@ -2,21 +2,24 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, ImagePlus } from "lucide-react";
 
 export default function ImageUploader({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onChange([...images, file_url]);
+      const uploadedUrls = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      }
+      onChange([...images, ...uploadedUrls]);
     } catch (error) {
       alert("Failed to upload image: " + error.message);
     } finally {
@@ -44,44 +47,57 @@ export default function ImageUploader({ images = [], onChange }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <label
-            htmlFor="file-upload"
-            className="flex items-center justify-center gap-2 px-4 py-2 border border-[#E8E6E3] rounded-md cursor-pointer hover:bg-[#E8E6E3] transition-colors"
-          >
+      {/* Upload Button - Prominent */}
+      <div className="border-2 border-dashed border-[#E8E6E3] rounded-lg p-6 text-center hover:border-[#C4A962] transition-colors">
+        <label
+          htmlFor={`file-upload-${Math.random()}`}
+          className="cursor-pointer block"
+        >
+          <div className="flex flex-col items-center gap-3">
             {uploading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Uploading...
+                <Loader2 className="w-8 h-8 animate-spin text-[#C4A962]" />
+                <p className="text-sm text-[#6B6B6B]">Uploading...</p>
               </>
             ) : (
               <>
-                <Upload className="w-4 h-4" />
-                Upload Image
+                <div className="w-12 h-12 rounded-full bg-[#C4A962]/10 flex items-center justify-center">
+                  <ImagePlus className="w-6 h-6 text-[#C4A962]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#2D2D2D] mb-1">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-[#6B6B6B]">
+                    PNG, JPG, GIF up to 10MB
+                  </p>
+                </div>
               </>
             )}
-          </label>
+          </div>
           <input
-            id="file-upload"
+            id={`file-upload-${Math.random()}`}
             type="file"
             accept="image/*"
             onChange={handleFileUpload}
             disabled={uploading}
             className="hidden"
+            multiple
           />
-        </div>
+        </label>
       </div>
 
+      {/* URL Input - Secondary Option */}
       <div className="flex gap-2">
         <Input
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
           placeholder="Or paste image URL..."
           onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleUrlAdd())}
+          className="flex-1"
         />
-        <Button type="button" onClick={handleUrlAdd} variant="outline">
-          Add URL
+        <Button type="button" onClick={handleUrlAdd} variant="outline" size="sm">
+          Add
         </Button>
       </div>
 
