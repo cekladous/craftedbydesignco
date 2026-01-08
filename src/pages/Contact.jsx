@@ -19,7 +19,9 @@ import {
   ExternalLink, 
   CheckCircle2,
   Loader2,
-  Send
+  Send,
+  Upload,
+  X
 } from "lucide-react";
 
 const categories = [
@@ -40,8 +42,10 @@ export default function Contact() {
     category: "",
     event_date: "",
     message: "",
+    vision_images: [],
   });
   const [submitted, setSubmitted] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Check URL params for pre-filled data
   useEffect(() => {
@@ -82,6 +86,35 @@ export default function Contact() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedUrls = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      }
+      setFormData((prev) => ({
+        ...prev,
+        vision_images: [...prev.vision_images, ...uploadedUrls],
+      }));
+    } catch (error) {
+      alert("Failed to upload images: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      vision_images: prev.vision_images.filter((_, i) => i !== index),
+    }));
+  };
+
   if (submitted) {
     return (
       <div className="pt-32 pb-24 px-6 lg:px-12 min-h-[80vh] flex items-center justify-center">
@@ -111,6 +144,7 @@ export default function Contact() {
                 category: "",
                 event_date: "",
                 message: "",
+                vision_images: [],
               });
             }}
             variant="outline"
@@ -312,6 +346,69 @@ export default function Contact() {
                     placeholder="Describe your vision, quantities needed, any specific requirements..."
                     className="border-[#E8E6E3] focus:border-[#C4A962] focus:ring-[#C4A962] resize-none"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs tracking-widest uppercase text-[#6B6B6B]">
+                    Upload Inspiration Photos (Optional)
+                  </Label>
+                  <div className="border-2 border-dashed border-[#E8E6E3] rounded-sm p-6 text-center hover:border-[#C4A962] transition-colors">
+                    <label
+                      htmlFor="vision-upload"
+                      className="cursor-pointer block"
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        {uploading ? (
+                          <>
+                            <Loader2 className="w-8 h-8 animate-spin text-[#C4A962]" />
+                            <p className="text-sm text-[#6B6B6B]">Uploading...</p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-12 h-12 rounded-full bg-[#C4A962]/10 flex items-center justify-center">
+                              <Upload className="w-6 h-6 text-[#C4A962]" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-[#2D2D2D] mb-1">
+                                Click to upload or drag and drop
+                              </p>
+                              <p className="text-xs text-[#6B6B6B]">
+                                Share photos of designs you like
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        id="vision-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        multiple
+                      />
+                    </label>
+                  </div>
+                  {formData.vision_images.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-3">
+                      {formData.vision_images.map((img, idx) => (
+                        <div
+                          key={idx}
+                          className="relative aspect-square rounded-sm overflow-hidden group bg-[#E8E6E3]"
+                        >
+                          <img src={img} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(idx)}
+                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <Button
