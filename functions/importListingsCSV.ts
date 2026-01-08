@@ -248,63 +248,7 @@ function parseCSV(csvText) {
   return rows;
 }
 
-// Fetch image from URL and upload to storage with timeout
-async function fetchAndUploadImageWithTimeout(url, base44, timeoutMs = 15000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  try {
-    // Fetch the image with timeout
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ImageFetcher/1.0)',
-        'Accept': 'image/*'
-      }
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    
-    // Validate content type
-    if (!contentType.startsWith('image/')) {
-      throw new Error(`Invalid content type: ${contentType}`);
-    }
-
-    const blob = await response.blob();
-    
-    // Validate blob size (max 10MB)
-    if (blob.size > 10 * 1024 * 1024) {
-      throw new Error('Image too large (max 10MB)');
-    }
-    
-    // Determine file extension
-    let ext = 'jpg';
-    if (contentType.includes('png')) ext = 'png';
-    else if (contentType.includes('gif')) ext = 'gif';
-    else if (contentType.includes('webp')) ext = 'webp';
-
-    // Create a File object
-    const filename = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
-    const file = new File([blob], filename, { type: contentType });
-
-    // Upload using the integration
-    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file });
-    
-    return file_url;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('Image fetch timeout');
-    }
-    throw error;
-  }
-}
 
 // Auto-categorize based on title and tags
 function autoCategorizeListing(title, tags) {
