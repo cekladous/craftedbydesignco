@@ -54,7 +54,16 @@ export default function About() {
                   className="flex items-center gap-2 text-[#2D2D2D] hover:text-[#C4A962] transition-colors"
                 >
                   <Instagram className="w-5 h-5" />
-                  <span className="text-sm">Follow our journey</span>
+                  <span className="text-sm">Follow on Instagram</span>
+                </a>
+                <a
+                  href="https://www.facebook.com/CraftedbyDesignCo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[#2D2D2D] hover:text-[#C4A962] transition-colors"
+                >
+                  <Facebook className="w-5 h-5" />
+                  <span className="text-sm">Follow on Facebook</span>
                 </a>
               </div>
             </motion.div>
