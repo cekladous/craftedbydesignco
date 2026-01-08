@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
     }
 
     console.log('=== IMPORT COMPLETE ===');
-    console.log(`Created: ${results.imported}, Skipped: ${results.skipped}, Failed: ${results.failed.length}`);
+    console.log(`Created: ${results.imported}, Updated: ${results.updated}, Failed: ${results.failed.length}`);
 
     const success = results.failed.length === 0;
 
