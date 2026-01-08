@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
           tags: tags,
           sku: sku,
           images: imageUrls,
+          etsy_url: row.URL?.trim() || row.ETSY_URL?.trim() || '',
           category: category,
           featured: existingItem?.featured || false,
           visible: existingItem?.visible !== undefined ? existingItem.visible : true,
