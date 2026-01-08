@@ -104,65 +104,47 @@ Deno.serve(async (req) => {
         
         console.log(`Row ${rowNum}: Found ${imageUrls.length} image URLs`);
 
-        // Parse materials (comma or pipe separated, handle quotes)
+        // Parse materials and tags safely
         const materials = row.MATERIALS 
           ? row.MATERIALS.split(/[,|]/).map(m => m.replace(/^["']|["']$/g, '').trim()).filter(m => m.length > 0)
           : [];
 
-        // Parse tags (comma or pipe separated, handle quotes)
         const tags = row.TAGS 
           ? row.TAGS.split(/[,|]/).map(t => t.replace(/^["']|["']$/g, '').trim()).filter(t => t.length > 0)
           : [];
 
-        // Auto-categorize based on title/tags
+        // Auto-categorize
         const category = autoCategorizeListing(title, tags);
 
-        // Build portfolio item data
+        // Create portfolio item
         const portfolioData = {
           name: title,
-          description: row.DESCRIPTION || '',
+          description: row.DESCRIPTION?.trim() || '',
           materials: materials,
           tags: tags,
           sku: sku,
           images: imageUrls,
           category: category,
-          featured: existingItem?.featured || false,
-          visible: existingItem?.visible !== undefined ? existingItem.visible : true,
-          display_order: existingItem?.display_order !== undefined ? existingItem.display_order : displayOrder++
+          featured: false,
+          visible: true,
+          display_order: displayOrder++
         };
 
-        // Preserve custom fields on update
-        if (existingItem) {
-          // Keep Etsy URL if it exists
-          if (existingItem.etsy_url) {
-            portfolioData.etsy_url = existingItem.etsy_url;
-          }
-          if (existingItem.customization_options) {
-            portfolioData.customization_options = existingItem.customization_options;
-          }
-          if (existingItem.attachments) {
-            portfolioData.attachments = existingItem.attachments;
-          }
-        }
+        await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
+        results.imported++;
+        console.log(`Row ${rowNum}: Created "${title}"`);
+        
+        // Register SKU to prevent duplicates in this batch
+        itemsBySku.set(sku.toLowerCase(), { sku });
 
-        if (existingItem) {
-          // SKU exists - skip to prevent duplicates
-          results.skipped++;
-          console.log(`Row ${rowNum}: Skipped duplicate SKU: ${sku}`);
-        } else {
-          // Create new item
-          await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
-          results.imported++;
-          console.log(`Row ${rowNum}: Created new item: ${title}`);
-          
-          // Add to lookup maps to prevent intra-batch duplicates
-          if (sku) {
-            itemsBySku.set(sku.toLowerCase(), { sku });
-          }
+        // Batch control: yield control periodically
+        if (i % BATCH_SIZE === 0) {
+          console.log(`Processed ${i}/${rows.length - 1} rows`);
+          await new Promise(resolve => setTimeout(resolve, 10));
         }
 
       } catch (rowError) {
-        console.error(`Row ${rowNum} error:`, rowError);
+        console.error(`Row ${rowNum} failed:`, rowError.message);
         results.failed.push({ 
           row: rowNum, 
           title: row?.TITLE || 'Unknown',
@@ -171,10 +153,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('Import complete:', results);
+    console.log('=== IMPORT COMPLETE ===');
+    console.log(`Created: ${results.imported}, Skipped: ${results.skipped}, Failed: ${results.failed.length}`);
+
+    const success = results.failed.length === 0;
 
     return Response.json({
-      success: true,
+      success: success,
       results
     });
 
