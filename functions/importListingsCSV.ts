@@ -9,28 +9,50 @@ function cleanText(text) {
   
   return text
     // Fix common Windows-1252 to UTF-8 mojibake
-    .replace(/Ã¢â‚¬â„¢/g, "'")  // smart apostrophe
-    .replace(/Ã¢â‚¬Å"/g, '"')   // smart quote left
-    .replace(/Ã¢â‚¬\u009d/g, '"') // smart quote right
-    .replace(/Ã¢â‚¬â€œ/g, '—')  // em dash
-    .replace(/Ã¢â‚¬â€/g, '–')   // en dash
-    .replace(/Ã¢â‚¬Â¢/g, '•')   // bullet
-    .replace(/Ã‚Â°/g, '°')       // degree
+    .replace(/Ã¢â‚¬â„¢/g, "'")
+    .replace(/Ã¢â‚¬Å"/g, '"')
+    .replace(/Ã¢â‚¬\u009d/g, '"')
+    .replace(/Ã¢â‚¬â€œ/g, '—')
+    .replace(/Ã¢â‚¬â€/g, '–')
+    .replace(/Ã¢â‚¬Â¢/g, '•')
+    .replace(/Ã‚Â°/g, '°')
     // Fix the specific patterns mentioned
-    .replace(/Äì/g, '—')         // em dash
-    .replace(/Äô[sS]/g, "'s")    // possessive
-    .replace(/Äôt/g, "'t")       // contraction
-    .replace(/Äù/g, "'")         // smart apostrophe
-    .replace(/-18‚/g, "'")       // corrupted apostrophe
+    .replace(/Äì/g, '—')
+    .replace(/Äô[sS]/g, "'s")
+    .replace(/Äôt/g, "'t")
+    .replace(/Äôre/g, "'re")
+    .replace(/Äôll/g, "'ll")
+    .replace(/Äôve/g, "'ve")
+    .replace(/Äôd/g, "'d")
+    .replace(/Äù/g, "'")
+    .replace(/Ä¢/g, '"')
+    .replace(/-18‚/g, "'")
+    .replace(/ú®/g, '®')
+    .replace(/úâ„¢/g, '™')
     // Additional common patterns
     .replace(/â€™/g, "'")
     .replace(/â€œ/g, '"')
     .replace(/â€\u009d/g, '"')
     .replace(/â€"/g, '—')
     .replace(/â€"/g, '–')
+    .replace(/â€¢/g, '•')
     .replace(/Â®/g, '®')
     .replace(/Â©/g, '©')
     .replace(/â„¢/g, '™')
+    .replace(/Ã©/g, 'é')
+    .replace(/Ã¨/g, 'è')
+    .replace(/Ã¡/g, 'á')
+    .replace(/Ã /g, 'à')
+    .replace(/Ã³/g, 'ó')
+    .replace(/Ã²/g, 'ò')
+    .replace(/Ãº/g, 'ú')
+    .replace(/Ã¹/g, 'ù')
+    .replace(/Ã­/g, 'í')
+    .replace(/Ã±/g, 'ñ')
+    // Clean up spacing - normalize multiple spaces/newlines to single space
+    .replace(/\s+/g, ' ')
+    // Fix paragraph breaks - convert double line breaks to proper spacing
+    .replace(/\n\n+/g, '\n\n')
     .trim();
 }
 
