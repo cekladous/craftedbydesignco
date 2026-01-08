@@ -31,13 +31,13 @@ Deno.serve(async (req) => {
 
     // Validate headers
     const headers = rows[0].map(h => h.toUpperCase().trim());
-    const requiredHeaders = ['TITLE', 'SKU'];
+    const requiredHeaders = ['TITLE'];
     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
     
     if (missingHeaders.length > 0) {
       return Response.json({ 
         success: false, 
-        error: `Missing required columns: ${missingHeaders.join(', ')}` 
+        error: `Missing required column: TITLE` 
       }, { status: 400 });
     }
 
@@ -50,14 +50,14 @@ Deno.serve(async (req) => {
       total: rows.length - 1
     };
 
-    // Load existing items for SKU deduplication
+    // Load existing items for TITLE-based deduplication
     const existingItems = await base44.asServiceRole.entities.PortfolioItem.filter({});
     console.log(`Loaded ${existingItems.length} existing items`);
     
-    const itemsBySku = new Map();
+    const itemsByTitle = new Map();
     for (const item of existingItems) {
-      if (item.sku) {
-        itemsBySku.set(item.sku.toLowerCase().trim(), item);
+      if (item.name) {
+        itemsByTitle.set(item.name.toLowerCase().trim(), item);
       }
     }
 
