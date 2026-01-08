@@ -260,51 +260,44 @@ export default function Admin() {
 
     setImporting(true);
     setImportResults(null);
-    
+
     try {
-      // Read CSV content as text
       const csvContent = await file.text();
-      
-      // Validate it looks like a CSV with expected headers
+
+      // Basic validation
       const firstLine = csvContent.split('\n')[0].toUpperCase();
       if (!firstLine.includes('TITLE')) {
-        alert('Invalid CSV: Missing TITLE column header.\n\nExpected columns: TITLE, DESCRIPTION, MATERIALS, TAGS, SKU, IMAGE1-IMAGE10');
-        return;
+        throw new Error('Invalid CSV: Missing TITLE column header');
       }
 
-      console.log('Invoking import function...');
+      console.log('Starting CSV import...');
       const response = await base44.functions.invoke('importListingsCSV', { csvContent });
-      console.log('Import response:', response);
-      
-      if (!response || !response.data) {
+
+      if (!response?.data) {
         throw new Error('No response from import function');
       }
 
       const { data } = response;
-      
+
       if (data.success === false || data.error) {
-        alert(`CSV Import Failed\n\n${data.error || 'Unknown error'}\n\n${data.details || ''}`);
-      } else if (data.results) {
+        throw new Error(data.error || 'Import failed');
+      }
+
+      if (data.results) {
         setImportResults(data.results);
         queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
-        
-        // Show success message
-        const { imported, updated, failed } = data.results;
-        const summary = [
-          imported > 0 ? `✓ Created ${imported} new items` : '',
-          updated > 0 ? `✓ Updated ${updated} existing items` : '',
-          failed?.length > 0 ? `⚠ ${failed.length} items failed` : ''
-        ].filter(Boolean).join('\n');
-        
-        if (summary) {
-          alert(`Import Complete\n\n${summary}`);
-        }
-      } else {
-        throw new Error('Invalid response format');
+
+        const { imported, skipped, failed } = data.results;
+        const parts = [];
+        if (imported > 0) parts.push(`Created ${imported} items`);
+        if (skipped > 0) parts.push(`Skipped ${skipped} duplicates`);
+        if (failed?.length > 0) parts.push(`Failed ${failed.length} rows`);
+
+        alert(`Import Complete\n\n${parts.join(' • ')}`);
       }
     } catch (error) {
-      console.error('Import error:', error);
-      alert(`Import failed: ${error.message}\n\nPlease check the console for details.`);
+      console.error('CSV Import Error:', error);
+      alert(`CSV Import Failed\n\n${error.message}`);
     } finally {
       setImporting(false);
       e.target.value = '';
