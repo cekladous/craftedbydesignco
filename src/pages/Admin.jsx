@@ -306,7 +306,7 @@ export default function Admin() {
       }
     } catch (error) {
       console.error('CSV Import Error:', error);
-      alert(`CSV Import Failed\n\n${error.message}\n\nPlease check:\n• CSV has TITLE and SKU columns\n• File is valid UTF-8 text\n• Network connection is stable`);
+      alert(`CSV Import Failed\n\n${error.message}\n\nPlease check:\n• CSV has TITLE column\n• File is valid UTF-8 text\n• Network connection is stable`);
       setImportResults(null);
     } finally {
       setImporting(false);
