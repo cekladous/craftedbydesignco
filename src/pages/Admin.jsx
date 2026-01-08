@@ -295,14 +295,14 @@ export default function Admin() {
       setImportResults(data.results);
       queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
 
-      const { imported, skipped, failed } = data.results;
+      const { imported, updated, skipped, failed } = data.results;
 
       if (failed?.length > 0) {
-        alert(`Import Completed with Errors\n\n✓ Created: ${imported}\n⊘ Skipped: ${skipped}\n✗ Failed: ${failed.length}\n\nCheck the summary below for details.`);
-      } else if (imported === 0 && skipped > 0) {
-        alert(`No New Items Imported\n\nAll ${skipped} rows were duplicates (titles already exist).`);
+        alert(`Import Completed with Errors\n\n✓ Created: ${imported}\n↻ Updated: ${updated}\n✗ Failed: ${failed.length}\n\nCheck the summary below for details.`);
+      } else if (imported === 0 && updated === 0) {
+        alert(`No Changes Made\n\nAll rows were either duplicates or invalid.`);
       } else {
-        alert(`Import Successful\n\n✓ Created: ${imported}\n⊘ Skipped: ${skipped}`);
+        alert(`Import Successful\n\n✓ Created: ${imported}\n↻ Updated: ${updated}`);
       }
     } catch (error) {
       console.error('CSV Import Error:', error);
