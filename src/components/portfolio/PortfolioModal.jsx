@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, ExternalLink, MessageSquare } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ExternalLink, MessageSquare, Download, FileText, Image as ImageIcon, File } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 const categoryLabels = {
   wedding: "Wedding",
@@ -13,8 +15,31 @@ const categoryLabels = {
   specialty: "Specialty Items",
 };
 
+const getFileIcon = (mimeType) => {
+  if (!mimeType) return File;
+  if (mimeType.startsWith('image/')) return ImageIcon;
+  if (mimeType.includes('pdf')) return FileText;
+  return File;
+};
+
 export default function PortfolioModal({ item, isOpen, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Fetch attachments if any
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["attachments", item?.id],
+    queryFn: async () => {
+      if (!item?.attachments || item.attachments.length === 0) return [];
+      const files = await Promise.all(
+        item.attachments.map(async (id) => {
+          const results = await base44.entities.UploadedFile.filter({ id });
+          return results[0];
+        })
+      );
+      return files.filter(Boolean);
+    },
+    enabled: !!(item?.attachments && item.attachments.length > 0 && isOpen)
+  });
 
   if (!item) return null;
 
@@ -134,13 +159,45 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
               )}
               
               {item.customization_options && (
-                <div className="mb-8">
+                <div className="mb-6">
                   <h4 className="text-xs tracking-widest uppercase text-[#2D2D2D] mb-2">
                     Customization
                   </h4>
                   <p className="text-sm text-[#6B6B6B]">
                     {item.customization_options}
                   </p>
+                </div>
+              )}
+
+              {attachments.length > 0 && (
+                <div className="mb-8">
+                  <h4 className="text-xs tracking-widest uppercase text-[#2D2D2D] mb-3">
+                    Downloadable Files
+                  </h4>
+                  <div className="space-y-2">
+                    {attachments.map((file) => {
+                      const Icon = getFileIcon(file.mime_type);
+                      return (
+                        <a
+                          key={file.id}
+                          href={file.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-sm border border-[#E8E6E3] hover:border-[#C4A962] transition-colors group"
+                        >
+                          <div className="w-8 h-8 rounded-sm bg-[#E8E6E3] flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-4 h-4 text-[#6B6B6B]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-[#2D2D2D] truncate">
+                              {file.label || file.filename}
+                            </p>
+                          </div>
+                          <Download className="w-4 h-4 text-[#6B6B6B] group-hover:text-[#C4A962] transition-colors" />
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
               
