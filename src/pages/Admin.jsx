@@ -402,12 +402,12 @@ export default function Admin() {
                   {importing ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Importing...
+                      Importing CSV...
                     </>
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Upload Listings CSV
+                      Import Listings CSV
                     </>
                   )}
                 </label>
