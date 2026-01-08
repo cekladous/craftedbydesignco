@@ -476,13 +476,27 @@ export default function Admin() {
                   <h3 className="font-medium text-[#2D2D2D] text-lg">
                     Import Complete
                   </h3>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setImportResults(null)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUndo}
+                      disabled={undoing}
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                    >
+                      {undoing ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : null}
+                      Undo Import
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setImportResults(null)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-3 mb-3">
