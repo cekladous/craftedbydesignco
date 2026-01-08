@@ -126,24 +126,24 @@ Deno.serve(async (req) => {
           console.log(`Row ${rowNum}: Missing TITLE - skipping`);
           results.skipped++;
           continue;
-        }
+          }
 
-        // Check if item already exists (by TITLE + IMAGE1)
-        const firstImageUrl = imageUrls[0] || '';
-        const itemKey = `${title.toLowerCase()}|${firstImageUrl}`;
-        const existingItem = itemsByKey.get(itemKey);
-
-        // Collect image URLs directly (no fetching/uploading)
-        const imageUrls = [];
+          // Collect image URLs directly (no fetching/uploading)
+          const imageUrls = [];
         for (let imgNum = 1; imgNum <= 10; imgNum++) {
           const imgField = `IMAGE${imgNum}`;
           const imgUrl = row[imgField]?.trim();
           if (imgUrl && imgUrl.startsWith('http')) {
             imageUrls.push(imgUrl);
-          }
-        }
+            }
+            }
 
-        // Parse materials and tags safely
+            // Check if item already exists (by TITLE + IMAGE1)
+            const firstImageUrl = imageUrls[0] || '';
+            const itemKey = `${title.toLowerCase()}|${firstImageUrl}`;
+            const existingItem = itemsByKey.get(itemKey);
+
+            // Parse materials and tags safely
         const materials = row.MATERIALS 
           ? row.MATERIALS.split(/[,|]/).map(m => m.replace(/^["']|["']$/g, '').trim()).filter(m => m.length > 0)
           : [];
