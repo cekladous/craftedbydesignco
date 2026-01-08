@@ -86,12 +86,8 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Check for duplicate TITLE
-        if (itemsByTitle.has(title.toLowerCase())) {
-          console.log(`Row ${rowNum}: Duplicate title "${title}" - skipping`);
-          results.skipped++;
-          continue;
-        }
+        // Check if item already exists
+        const existingItem = itemsByTitle.get(title.toLowerCase());
 
         // Collect image URLs directly (no fetching/uploading)
         const imageUrls = [];
@@ -102,8 +98,6 @@ Deno.serve(async (req) => {
             imageUrls.push(imgUrl);
           }
         }
-        
-        console.log(`Row ${rowNum}: Found ${imageUrls.length} image URLs`);
 
         // Parse materials and tags safely
         const materials = row.MATERIALS 
@@ -117,7 +111,7 @@ Deno.serve(async (req) => {
         // Auto-categorize
         const category = autoCategorizeListing(title, tags);
 
-        // Create portfolio item
+        // Build portfolio item data
         const portfolioData = {
           name: title,
           description: row.DESCRIPTION?.trim() || '',
@@ -126,17 +120,25 @@ Deno.serve(async (req) => {
           sku: sku,
           images: imageUrls,
           category: category,
-          featured: false,
-          visible: true,
-          display_order: displayOrder++
+          featured: existingItem?.featured || false,
+          visible: existingItem?.visible !== undefined ? existingItem.visible : true,
+          display_order: existingItem?.display_order !== undefined ? existingItem.display_order : displayOrder++
         };
 
-        await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
-        results.imported++;
-        console.log(`Row ${rowNum}: Created "${title}"`);
-        
-        // Register title to prevent duplicates in this batch
-        itemsByTitle.set(title.toLowerCase(), { name: title });
+        if (existingItem) {
+          // Update existing item
+          await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, portfolioData);
+          results.updated++;
+          console.log(`Row ${rowNum}: Updated "${title}"`);
+        } else {
+          // Create new item
+          await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
+          results.imported++;
+          console.log(`Row ${rowNum}: Created "${title}"`);
+          
+          // Register title to prevent duplicates in this batch
+          itemsByTitle.set(title.toLowerCase(), { name: title, id: null });
+        }
 
         // Batch control: yield control periodically
         if (i % BATCH_SIZE === 0) {
