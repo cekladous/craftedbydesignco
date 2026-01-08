@@ -258,46 +258,56 @@ export default function Admin() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('Please upload a .csv file');
+      return;
+    }
+
     setImporting(true);
     setImportResults(null);
 
     try {
       const csvContent = await file.text();
 
-      // Basic validation
+      // Validate CSV format
       const firstLine = csvContent.split('\n')[0].toUpperCase();
-      if (!firstLine.includes('TITLE')) {
-        throw new Error('Invalid CSV: Missing TITLE column header');
+      if (!firstLine.includes('TITLE') || !firstLine.includes('SKU')) {
+        throw new Error('Invalid CSV: Missing required headers (TITLE, SKU)');
       }
 
-      console.log('Starting CSV import...');
+      console.log('Uploading CSV to import function...');
       const response = await base44.functions.invoke('importListingsCSV', { csvContent });
 
       if (!response?.data) {
-        throw new Error('No response from import function');
+        throw new Error('Import function returned no data');
       }
 
       const { data } = response;
 
-      if (data.success === false || data.error) {
-        throw new Error(data.error || 'Import failed');
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      if (data.results) {
-        setImportResults(data.results);
-        queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+      if (!data.results) {
+        throw new Error('Invalid response format from import function');
+      }
 
-        const { imported, skipped, failed } = data.results;
-        const parts = [];
-        if (imported > 0) parts.push(`Created ${imported} items`);
-        if (skipped > 0) parts.push(`Skipped ${skipped} duplicates`);
-        if (failed?.length > 0) parts.push(`Failed ${failed.length} rows`);
+      setImportResults(data.results);
+      queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
 
-        alert(`Import Complete\n\n${parts.join(' • ')}`);
+      const { imported, skipped, failed } = data.results;
+
+      if (failed?.length > 0) {
+        alert(`Import Completed with Errors\n\n✓ Created: ${imported}\n⊘ Skipped: ${skipped}\n✗ Failed: ${failed.length}\n\nCheck the summary below for details.`);
+      } else if (imported === 0 && skipped > 0) {
+        alert(`No New Items Imported\n\nAll ${skipped} rows were duplicates (SKUs already exist).`);
+      } else {
+        alert(`Import Successful\n\n✓ Created: ${imported}\n⊘ Skipped: ${skipped}`);
       }
     } catch (error) {
       console.error('CSV Import Error:', error);
-      alert(`CSV Import Failed\n\n${error.message}`);
+      alert(`CSV Import Failed\n\n${error.message}\n\nPlease check:\n• CSV has TITLE and SKU columns\n• File is valid UTF-8 text\n• Network connection is stable`);
+      setImportResults(null);
     } finally {
       setImporting(false);
       e.target.value = '';
