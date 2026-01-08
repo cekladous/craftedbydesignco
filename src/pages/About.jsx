@@ -65,11 +65,11 @@ export default function About() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
-              <div className="aspect-[4/5] rounded-sm overflow-hidden">
+              <div className="aspect-[4/5] rounded-sm overflow-hidden bg-[#E8E6E3]">
                 <img
                   src={aboutImage}
                   alt="Crafting in the studio"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#C4A962] rounded-sm flex items-center justify-center">
