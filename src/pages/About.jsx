@@ -6,7 +6,15 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Heart, Award, ArrowRight, Instagram, Facebook } from "lucide-react";
 
-function ExperienceList() {
+function ExperienceSection() {
+  const { data: section } = useQuery({
+    queryKey: ["experience-section"],
+    queryFn: async () => {
+      const results = await base44.entities.ExperienceSection.filter({ setting_key: "main" });
+      return results[0] || null;
+    },
+  });
+
   const { data: items = [] } = useQuery({
     queryKey: ["experience-items"],
     queryFn: async () => {
@@ -15,34 +23,61 @@ function ExperienceList() {
     },
   });
 
-  if (items.length === 0) {
-    return (
-      <ul className="space-y-4 mb-8">
-        <li className="flex items-start gap-3 text-[#6B6B6B]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
-          Brides & wedding planners seeking unique signage
-        </li>
-        <li className="flex items-start gap-3 text-[#6B6B6B]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
-          New parents celebrating life's milestones
-        </li>
-        <li className="flex items-start gap-3 text-[#6B6B6B]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
-          Businesses looking for branded merchandise
-        </li>
-      </ul>
-    );
-  }
+  const defaultItems = [
+    "Brides & wedding planners seeking unique signage",
+    "New parents celebrating life's milestones",
+    "Businesses looking for branded merchandise",
+    "Gift-givers searching for something personal",
+    "Event planners creating memorable experiences"
+  ];
+
+  const displayItems = items.length > 0 ? items : defaultItems.map(text => ({ text }));
 
   return (
-    <ul className="space-y-4 mb-8">
-      {items.map((item) => (
-        <li key={item.id} className="flex items-start gap-3 text-[#6B6B6B]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
-          {item.text}
-        </li>
-      ))}
-    </ul>
+    <div className="grid lg:grid-cols-2 gap-12 items-start">
+      {/* Image Gallery */}
+      {section?.images && section.images.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {section.images.slice(0, 4).map((img, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              viewport={{ once: true }}
+              className="aspect-square rounded-sm overflow-hidden"
+            >
+              <img
+                src={img}
+                alt={`Experience ${idx + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Text Content */}
+      <div>
+        <p className="text-[10px] tracking-[0.3em] uppercase text-[#C4A962] mb-4">
+          {section?.title || "Experience"}
+        </p>
+        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">
+          {section?.subtitle || "Who We Serve"}
+        </h2>
+        <p className="text-[#6B6B6B] mb-8 leading-relaxed">
+          {section?.description || "From intimate weddings to large corporate events, we've had the privilege of creating pieces for a wide range of clients and occasions."}
+        </p>
+        <ul className="space-y-4 mb-8">
+          {displayItems.map((item, index) => (
+            <li key={item.id || index} className="flex items-start gap-3 text-[#6B6B6B]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C4A962] mt-2 flex-shrink-0" />
+              {item.text}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 

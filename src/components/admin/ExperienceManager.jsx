@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -12,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Loader2, GripVertical } from "lucide-react";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 export default function ExperienceManager() {
   const queryClient = useQueryClient();
@@ -22,6 +24,32 @@ export default function ExperienceManager() {
     visible: true,
     display_order: 0,
   });
+
+  const [sectionData, setSectionData] = useState({
+    title: "Experience",
+    subtitle: "Who We Serve",
+    description: "From intimate weddings to large corporate events, we've had the privilege of creating pieces for a wide range of clients and occasions.",
+    images: []
+  });
+
+  const { data: section } = useQuery({
+    queryKey: ["experience-section"],
+    queryFn: async () => {
+      const results = await base44.entities.ExperienceSection.filter({ setting_key: "main" });
+      return results[0] || null;
+    },
+  });
+
+  useEffect(() => {
+    if (section) {
+      setSectionData({
+        title: section.title || "Experience",
+        subtitle: section.subtitle || "Who We Serve",
+        description: section.description || "",
+        images: section.images || []
+      });
+    }
+  }, [section]);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["admin-experience"],
@@ -51,6 +79,19 @@ export default function ExperienceManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-experience"] });
       queryClient.invalidateQueries({ queryKey: ["experience-items"] });
+    },
+  });
+
+  const saveSection = useMutation({
+    mutationFn: async (data) => {
+      if (section?.id) {
+        return base44.entities.ExperienceSection.update(section.id, data);
+      } else {
+        return base44.entities.ExperienceSection.create({ ...data, setting_key: "main" });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["experience-section"] });
     },
   });
 
@@ -89,21 +130,81 @@ export default function ExperienceManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-xl font-semibold text-[#2D2D2D] mb-1">
-            Experience / Who We Serve
-          </h3>
-          <p className="text-sm text-[#6B6B6B]">
-            Manage the bullet points on the About page
-          </p>
+    <div className="space-y-8">
+      {/* Section Header Settings */}
+      <div className="bg-white rounded-sm border border-[#E8E6E3] p-6">
+        <h3 className="text-xl font-semibold text-[#2D2D2D] mb-4">
+          Section Header & Images
+        </h3>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={sectionData.title}
+              onChange={(e) => setSectionData({ ...sectionData, title: e.target.value })}
+              placeholder="Experience"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Subtitle</Label>
+            <Input
+              value={sectionData.subtitle}
+              onChange={(e) => setSectionData({ ...sectionData, subtitle: e.target.value })}
+              placeholder="Who We Serve"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              value={sectionData.description}
+              onChange={(e) => setSectionData({ ...sectionData, description: e.target.value })}
+              rows={3}
+              placeholder="From intimate weddings to large corporate events..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Gallery Images (Up to 4)</Label>
+            <ImageUploader
+              images={sectionData.images || []}
+              onChange={(imgs) => setSectionData({ ...sectionData, images: imgs.slice(0, 4) })}
+            />
+            <p className="text-xs text-[#6B6B6B]">
+              Add up to 4 images to display alongside the text
+            </p>
+          </div>
+
+          <Button
+            onClick={() => saveSection.mutate(sectionData)}
+            disabled={saveSection.isPending}
+            className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+          >
+            {saveSection.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : null}
+            Save Section
+          </Button>
         </div>
-        <Button onClick={() => openDialog()} className="bg-[#2D2D2D] hover:bg-[#C4A962]">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Item
-        </Button>
       </div>
+
+      {/* Bullet Points */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-xl font-semibold text-[#2D2D2D] mb-1">
+              Bullet Points
+            </h3>
+            <p className="text-sm text-[#6B6B6B]">
+              Manage the bullet point list
+            </p>
+          </div>
+          <Button onClick={() => openDialog()} className="bg-[#2D2D2D] hover:bg-[#C4A962]">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Item
+          </Button>
+        </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12">
@@ -151,6 +252,7 @@ export default function ExperienceManager() {
           ))}
         </div>
       )}
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-xl">
