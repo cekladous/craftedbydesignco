@@ -249,9 +249,46 @@ export default function Admin() {
 
   const handleBulkDelete = () => {
     if (selectedItems.size === 0) return;
-    
+
     if (confirm(`Delete ${selectedItems.size} selected items? This cannot be undone.`)) {
       bulkDeleteItems.mutate(Array.from(selectedItems));
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!importResults) return;
+
+    if (!confirm(`Undo this import? This will:\n• Delete ${importResults.imported} created items\n• Restore ${importResults.updated} updated items to their previous state\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    setUndoing(true);
+    try {
+      const response = await base44.functions.invoke('undoImport', {
+        createdIds: importResults.createdIds || [],
+        previousState: importResults.previousState || []
+      });
+
+      if (response?.data?.success) {
+        const { deleted, restored, errors } = response.data;
+
+        if (errors.length > 0) {
+          alert(`Undo completed with errors:\n• Deleted: ${deleted}\n• Restored: ${restored}\n• Errors: ${errors.length}\n\nCheck console for details.`);
+          console.error('Undo errors:', errors);
+        } else {
+          alert(`Import undone successfully:\n• Deleted ${deleted} created items\n• Restored ${restored} updated items`);
+        }
+
+        setImportResults(null);
+        queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+      } else {
+        throw new Error('Undo failed');
+      }
+    } catch (error) {
+      console.error('Undo error:', error);
+      alert(`Undo failed: ${error.message}`);
+    } finally {
+      setUndoing(false);
     }
   };
 
