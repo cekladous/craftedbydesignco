@@ -92,14 +92,15 @@ Deno.serve(async (req) => {
       previousState: []
     };
 
-    // Load existing items for TITLE-based deduplication
+    // Load existing items for TITLE + IMAGE1 deduplication
     const existingItems = await base44.asServiceRole.entities.PortfolioItem.filter({});
     console.log(`Loaded ${existingItems.length} existing items`);
-    
-    const itemsByTitle = new Map();
+
+    const itemsByKey = new Map();
     for (const item of existingItems) {
       if (item.name) {
-        itemsByTitle.set(item.name.toLowerCase().trim(), item);
+        const key = `${item.name.toLowerCase().trim()}|${item.images?.[0] || ''}`;
+        itemsByKey.set(key, item);
       }
     }
 
@@ -127,8 +128,10 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Check if item already exists
-        const existingItem = itemsByTitle.get(title.toLowerCase());
+        // Check if item already exists (by TITLE + IMAGE1)
+        const firstImageUrl = imageUrls[0] || '';
+        const itemKey = `${title.toLowerCase()}|${firstImageUrl}`;
+        const existingItem = itemsByKey.get(itemKey);
 
         // Collect image URLs directly (no fetching/uploading)
         const imageUrls = [];
@@ -187,9 +190,9 @@ Deno.serve(async (req) => {
           results.importedItems.push({ title, category, row: rowNum });
           results.createdIds.push(newItem.id);
           console.log(`Row ${rowNum}: Created "${title}"`);
-          
-          // Register title to prevent duplicates in this batch
-          itemsByTitle.set(title.toLowerCase(), { name: title, id: newItem.id });
+
+          // Register key to prevent duplicates in this batch
+          itemsByKey.set(itemKey, { name: title, images: imageUrls, id: newItem.id });
         }
 
         // Batch control: yield control periodically
