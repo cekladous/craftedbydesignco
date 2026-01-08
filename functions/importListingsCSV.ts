@@ -147,22 +147,26 @@ Deno.serve(async (req) => {
         }
 
         if (existingItem) {
-          // Update existing item
-          await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, portfolioData);
-          results.updated++;
-          console.log(`Row ${rowNum}: Updated existing item: ${title}`);
+          // SKU exists - skip to prevent duplicates
+          results.skipped++;
+          console.log(`Row ${rowNum}: Skipped duplicate SKU: ${sku}`);
         } else {
           // Create new item
           await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
           results.imported++;
           console.log(`Row ${rowNum}: Created new item: ${title}`);
+          
+          // Add to lookup maps to prevent intra-batch duplicates
+          if (sku) {
+            itemsBySku.set(sku.toLowerCase(), { sku });
+          }
         }
 
       } catch (rowError) {
         console.error(`Row ${rowNum} error:`, rowError);
         results.failed.push({ 
           row: rowNum, 
-          title: row.TITLE || 'Unknown',
+          title: row?.TITLE || 'Unknown',
           reason: rowError.message 
         });
       }
