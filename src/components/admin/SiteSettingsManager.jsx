@@ -14,6 +14,7 @@ export default function SiteSettingsManager() {
     hero_image: "",
     hero_headline: "Custom Laser-Cut\n& Engraved\nDesigns",
     hero_subheadline: "Handcrafted pieces for weddings, milestones, and moments worth celebrating. Made in New Jersey with precision and care.",
+    about_image: "",
   });
 
   const { data: settings, isLoading } = useQuery({
@@ -30,6 +31,7 @@ export default function SiteSettingsManager() {
         hero_image: settings.hero_image || "",
         hero_headline: settings.hero_headline || "Custom Laser-Cut\n& Engraved\nDesigns",
         hero_subheadline: settings.hero_subheadline || "Handcrafted pieces for weddings, milestones, and moments worth celebrating. Made in New Jersey with precision and care.",
+        about_image: settings.about_image || "",
       });
     }
   }, [settings]);
@@ -91,6 +93,17 @@ export default function SiteSettingsManager() {
 Designs"
           />
           <p className="text-xs text-[#6B6B6B]">Use line breaks to control text layout</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label>About Page Hero Image</Label>
+          <ImageUploader
+            images={formData.about_image ? [formData.about_image] : []}
+            onChange={(imgs) => setFormData({ ...formData, about_image: imgs[0] || "" })}
+          />
+          <p className="text-xs text-[#6B6B6B]">
+            Upload an image for the About page hero section
+          </p>
         </div>
 
         <div className="space-y-2">
