@@ -1,41 +1,47 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const BATCH_SIZE = 25; // Process rows in batches to prevent timeouts
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
     const { csvContent } = await req.json();
 
     if (!csvContent || typeof csvContent !== 'string') {
-      return Response.json({ error: 'Missing or invalid csvContent' }, { status: 400 });
+      return Response.json({ error: 'No CSV content provided' }, { status: 400 });
     }
 
-    console.log('Starting CSV import...');
+    console.log('=== CSV IMPORT STARTED ===');
 
-    // Parse CSV properly handling multiline quoted fields
+    // Parse CSV with RFC 4180-compliant parser
     const rows = parseCSV(csvContent);
     
     if (rows.length < 2) {
-      return Response.json({ error: 'CSV must have headers and at least one data row' }, { status: 400 });
+      return Response.json({ 
+        success: false, 
+        error: 'CSV must contain headers and at least one data row' 
+      }, { status: 400 });
     }
 
-    // Parse headers
+    // Validate headers
     const headers = rows[0].map(h => h.toUpperCase().trim());
+    const requiredHeaders = ['TITLE', 'SKU'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
     
-    // Validate required headers
-    const requiredHeaders = ['TITLE'];
-    for (const required of requiredHeaders) {
-      if (!headers.includes(required)) {
-        return Response.json({ error: `Missing required header: ${required}` }, { status: 400 });
-      }
+    if (missingHeaders.length > 0) {
+      return Response.json({ 
+        success: false, 
+        error: `Missing required columns: ${missingHeaders.join(', ')}` 
+      }, { status: 400 });
     }
 
-    console.log(`Processing ${rows.length - 1} rows...`);
+    console.log(`Found ${rows.length - 1} data rows to process`);
 
     const results = {
       imported: 0,
