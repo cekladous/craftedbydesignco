@@ -136,7 +136,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                 {item.name}
               </h2>
               
-              <p className="text-[#6B6B6B] leading-relaxed mb-6">
+              <p className="text-[#6B6B6B] leading-relaxed mb-6 whitespace-pre-wrap">
                 {item.description}
               </p>
               

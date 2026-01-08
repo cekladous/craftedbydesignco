@@ -44,6 +44,7 @@ import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
 import SiteSettingsManager from "@/components/admin/SiteSettingsManager";
 import AttachmentsManager from "@/components/admin/AttachmentsManager";
 import AttachmentSelector from "@/components/admin/AttachmentSelector";
+import SpecialtiesManager from "@/components/admin/SpecialtiesManager";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -66,6 +67,7 @@ const inquiryStatuses = [
 const emptyItem = {
   name: "",
   category: "wedding",
+  categories: [],
   description: "",
   materials: [],
   images: [],
@@ -399,6 +401,7 @@ export default function Admin() {
           <TabsList className="bg-[#E8E6E3] mb-8">
             <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
             <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
+            <TabsTrigger value="specialties">Specialties</TabsTrigger>
             <TabsTrigger value="homepage">Homepage Settings</TabsTrigger>
             <TabsTrigger value="attachments">Attachments</TabsTrigger>
             <TabsTrigger value="inquiries">
@@ -677,6 +680,11 @@ export default function Admin() {
             <CapabilitiesManager />
           </TabsContent>
 
+          {/* Specialties Tab */}
+          <TabsContent value="specialties">
+            <SpecialtiesManager />
+          </TabsContent>
+
           {/* Homepage Settings Tab */}
           <TabsContent value="homepage">
             <SiteSettingsManager />
@@ -783,34 +791,72 @@ export default function Admin() {
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    placeholder="Product or listing title"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Category *</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Title *</Label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  placeholder="Product or listing title"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Categories *</Label>
+                <Select
+                  value=""
+                  onValueChange={(value) => {
+                    const currentCategories = formData.categories || [];
+                    if (!currentCategories.includes(value)) {
+                      setFormData({
+                        ...formData,
+                        categories: [...currentCategories, value],
+                        category: currentCategories.length === 0 ? value : formData.category
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select categories..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(formData.categories?.length > 0 || formData.category) && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {(formData.categories?.length > 0 ? formData.categories : [formData.category]).map((cat, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="bg-[#E8E6E3] text-[#2D2D2D] pr-1"
+                      >
+                        {categories.find((c) => c.value === cat)?.label || cat}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCategories = (formData.categories || []).filter((c) => c !== cat);
+                            setFormData({
+                              ...formData,
+                              categories: newCategories,
+                              category: newCategories[0] || cat
+                            });
+                          }}
+                          className="ml-1 p-0.5 hover:bg-[#2D2D2D]/10 rounded"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-[#6B6B6B]">
+                  Select multiple categories for this item
+                </p>
               </div>
 
               <div className="space-y-2">

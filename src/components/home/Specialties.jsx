@@ -2,35 +2,20 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-
-const specialties = [
-  {
-    title: "Wedding Signage",
-    description: "Welcome signs, seating charts, table numbers, and more to make your day unforgettable.",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80",
-    category: "wedding",
-  },
-  {
-    title: "Baby & Milestones",
-    description: "Birth announcements, nursery signs, and keepsakes to celebrate life's precious moments.",
-    image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80",
-    category: "baby",
-  },
-  {
-    title: "Personalized Gifts",
-    description: "Charcuterie boards, cutting boards, and custom pieces that become treasured keepsakes.",
-    image: "https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=800&q=80",
-    category: "gifts",
-  },
-  {
-    title: "Corporate & Branded",
-    description: "Engraved merchandise, logo items, and bulk gifting solutions for businesses.",
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800&q=80",
-    category: "corporate",
-  },
-];
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Specialties() {
+  const { data: specialties = [] } = useQuery({
+    queryKey: ["specialties"],
+    queryFn: async () => {
+      const items = await base44.entities.Specialty.filter({ visible: true });
+      return items.sort((a, b) => a.display_order - b.display_order);
+    },
+  });
+
+  if (specialties.length === 0) return null;
+
   return (
     <section className="py-24 lg:py-32 bg-[#2D2D2D]">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -63,7 +48,7 @@ export default function Specialties() {
                 className="group block relative aspect-[16/10] overflow-hidden rounded-sm"
               >
                 <img
-                  src={item.image}
+                  src={item.image_url || item.image}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
