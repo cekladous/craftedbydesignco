@@ -229,64 +229,14 @@ export default function About() {
       {/* Experience Section */}
       <section className="py-24 lg:py-32 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="order-2 lg:order-1 grid grid-cols-2 gap-4"
-            >
-              <div className="aspect-square rounded-sm overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80"
-                  alt="Wedding signage"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="aspect-square rounded-sm overflow-hidden mt-8">
-                <img
-                  src="https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=400&q=80"
-                  alt="Cutting boards"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="aspect-square rounded-sm overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80"
-                  alt="Nursery decor"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="aspect-square rounded-sm overflow-hidden mt-8">
-                <img
-                  src="https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=400&q=80"
-                  alt="Corporate gifts"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="order-1 lg:order-2"
-            >
-              <p className="text-[10px] tracking-[0.3em] uppercase text-[#C4A962] mb-4">
-                Experience
-              </p>
-              <h2 className="font-serif text-4xl md:text-5xl text-[#2D2D2D] mb-6">
-                Who We Serve
-              </h2>
-              <p className="text-[#6B6B6B] leading-relaxed mb-6">
-                From intimate weddings to large corporate events, we've had the 
-                privilege of creating pieces for a wide range of clients and occasions.
-              </p>
-              <ExperienceList />
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <ExperienceSection />
+          </motion.div>
         </div>
       </section>
 
