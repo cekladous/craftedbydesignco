@@ -55,16 +55,10 @@ function cleanText(text) {
     .replace(/Ã¹/g, 'ù')
     .replace(/Ã­/g, 'í')
     .replace(/Ã±/g, 'ñ')
-    // Preserve paragraph breaks first (convert to placeholder)
-    .replace(/\n\n+/g, '<<<PARAGRAPH_BREAK>>>')
-    // Clean up excessive spaces on each line
-    .replace(/[ \t]+/g, ' ')
-    // Remove spaces around line breaks
-    .replace(/\s*\n\s*/g, '\n')
-    // Restore paragraph breaks
-    .replace(/<<<PARAGRAPH_BREAK>>>/g, '\n\n')
-    // Clean up multiple consecutive line breaks (3 or more becomes 2)
-    .replace(/\n{3,}/g, '\n\n')
+    // Preserve exact line breaks and paragraph spacing
+    .split('\n')
+    .map(line => line.replace(/[ \t]+/g, ' ').trim())
+    .join('\n')
     .trim();
 }
 
