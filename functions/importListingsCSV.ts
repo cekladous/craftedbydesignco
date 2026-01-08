@@ -75,19 +75,19 @@ Deno.serve(async (req) => {
           row[header] = values[idx] || '';
         });
 
-        // Skip rows with empty title or SKU
+        // Skip rows with empty title
         const title = row.TITLE?.trim() || '';
         const sku = row.SKU?.trim() || '';
         
-        if (!title || !sku) {
-          console.log(`Row ${rowNum}: Missing TITLE or SKU - skipping`);
+        if (!title) {
+          console.log(`Row ${rowNum}: Missing TITLE - skipping`);
           results.skipped++;
           continue;
         }
 
-        // Check for duplicate SKU
-        if (itemsBySku.has(sku.toLowerCase())) {
-          console.log(`Row ${rowNum}: Duplicate SKU ${sku} - skipping`);
+        // Check for duplicate TITLE
+        if (itemsByTitle.has(title.toLowerCase())) {
+          console.log(`Row ${rowNum}: Duplicate title "${title}" - skipping`);
           results.skipped++;
           continue;
         }
