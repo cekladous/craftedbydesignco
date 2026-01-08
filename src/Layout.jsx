@@ -125,7 +125,7 @@ export default function Layout({ children, currentPageName }) {
                       : "border-white text-white hover:bg-white hover:text-[#2D2D2D]"
                   }`}
                 >
-                  Shop Etsy
+                  Etsy Shop
                 </a>
               </div>
 
@@ -199,7 +199,7 @@ export default function Layout({ children, currentPageName }) {
                     rel="noopener noreferrer"
                     className="text-xs tracking-widest uppercase font-medium px-4 py-2 rounded-full border border-[#2D2D2D] text-[#2D2D2D] hover:bg-[#2D2D2D] hover:text-white transition-all"
                   >
-                    Shop Etsy
+                    Etsy Shop
                   </a>
                 </div>
 
@@ -256,7 +256,7 @@ export default function Layout({ children, currentPageName }) {
                   rel="noopener noreferrer"
                   className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"
                 >
-                  Shop on Etsy
+                  Etsy Shop
                 </a>
                 <a
                   href="https://www.instagram.com/craftedbydesignco"
