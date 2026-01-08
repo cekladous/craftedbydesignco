@@ -15,6 +15,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing or invalid csvContent' }, { status: 400 });
     }
 
+    console.log('Starting CSV import...');
+
     // Parse CSV
     const lines = csvContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
@@ -33,19 +35,39 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log(`Processing ${lines.length - 1} rows...`);
+
     const results = {
       imported: 0,
+      updated: 0,
+      skipped: 0,
       failed: [],
       total: lines.length - 1
     };
 
-    // Get existing items count for display_order
+    // Get existing items for duplicate detection
     const existingItems = await base44.asServiceRole.entities.PortfolioItem.filter({});
+    console.log(`Found ${existingItems.length} existing portfolio items`);
+    
+    // Create lookup maps for duplicate detection
+    const itemsByTitle = new Map();
+    const itemsBySku = new Map();
+    for (const item of existingItems) {
+      if (item.name) {
+        itemsByTitle.set(item.name.toLowerCase().trim(), item);
+      }
+      if (item.sku) {
+        itemsBySku.set(item.sku.toLowerCase().trim(), item);
+      }
+    }
+
     let displayOrder = existingItems.length;
 
     // Process each row
     for (let i = 1; i < lines.length; i++) {
       const rowNum = i + 1;
+      console.log(`Processing row ${rowNum}/${lines.length}...`);
+      
       try {
         const values = parseCSVLine(lines[i]);
         const row = {};
@@ -55,27 +77,60 @@ Deno.serve(async (req) => {
         });
 
         // Skip empty rows
-        if (!row.TITLE || row.TITLE.trim() === '') {
-          results.failed.push({ row: rowNum, reason: 'Empty TITLE' });
+        const title = row.TITLE?.trim() || '';
+        if (!title) {
+          console.log(`Row ${rowNum}: Skipping empty title`);
+          results.skipped++;
           continue;
         }
 
-        // Process images - fetch and upload each one
+        // Check for duplicates
+        const sku = row.SKU?.trim() || '';
+        let existingItem = null;
+        
+        // First try SKU match (most reliable)
+        if (sku && itemsBySku.has(sku.toLowerCase())) {
+          existingItem = itemsBySku.get(sku.toLowerCase());
+          console.log(`Row ${rowNum}: Found existing item by SKU: ${sku}`);
+        }
+        // Then try title match
+        else if (itemsByTitle.has(title.toLowerCase())) {
+          existingItem = itemsByTitle.get(title.toLowerCase());
+          console.log(`Row ${rowNum}: Found existing item by title: ${title}`);
+        }
+
+        // Process images - fetch and upload each one with timeout
         const imageUrls = [];
+        const imageFields = [];
         for (let imgNum = 1; imgNum <= 10; imgNum++) {
           const imgField = `IMAGE${imgNum}`;
-          const imgUrl = row[imgField];
-          
-          if (imgUrl && imgUrl.trim()) {
-            try {
-              const uploadedUrl = await fetchAndUploadImage(imgUrl.trim(), base44);
-              if (uploadedUrl) {
-                imageUrls.push(uploadedUrl);
-              }
-            } catch (imgError) {
-              console.log(`Row ${rowNum}: Failed to fetch image ${imgNum}: ${imgError.message}`);
-              // Continue without this image
+          const imgUrl = row[imgField]?.trim();
+          if (imgUrl) {
+            imageFields.push({ num: imgNum, url: imgUrl });
+          }
+        }
+
+        console.log(`Row ${rowNum}: Processing ${imageFields.length} images...`);
+        
+        for (const imgField of imageFields) {
+          try {
+            // If updating, check if we already have this image URL
+            if (existingItem && existingItem.images?.includes(imgField.url)) {
+              console.log(`Row ${rowNum}: Image ${imgField.num} already exists, skipping`);
+              imageUrls.push(imgField.url);
+              continue;
             }
+
+            const uploadedUrl = await fetchAndUploadImageWithTimeout(imgField.url, base44, 15000);
+            if (uploadedUrl) {
+              imageUrls.push(uploadedUrl);
+              console.log(`Row ${rowNum}: Successfully uploaded image ${imgField.num}`);
+            } else {
+              console.log(`Row ${rowNum}: Failed to upload image ${imgField.num} (timeout or error)`);
+            }
+          } catch (imgError) {
+            console.log(`Row ${rowNum}: Error with image ${imgField.num}: ${imgError.message}`);
+            // Continue without this image
           }
         }
 
@@ -90,29 +145,59 @@ Deno.serve(async (req) => {
           : [];
 
         // Auto-categorize based on title/tags
-        const category = autoCategorizeListing(row.TITLE, tags);
+        const category = autoCategorizeListing(title, tags);
 
-        // Create portfolio item
-        const portfolioItem = {
-          name: row.TITLE.trim(),
+        // Build portfolio item data
+        const portfolioData = {
+          name: title,
           description: row.DESCRIPTION || '',
           materials: materials,
           tags: tags,
-          sku: row.SKU || '',
+          sku: sku,
           images: imageUrls,
           category: category,
-          featured: false,
-          visible: true,
-          display_order: displayOrder++
+          featured: existingItem?.featured || false,
+          visible: existingItem?.visible !== undefined ? existingItem.visible : true,
+          display_order: existingItem?.display_order !== undefined ? existingItem.display_order : displayOrder++
         };
 
-        await base44.asServiceRole.entities.PortfolioItem.create(portfolioItem);
-        results.imported++;
+        // Preserve custom fields on update
+        if (existingItem) {
+          // Keep Etsy URL if it exists
+          if (existingItem.etsy_url) {
+            portfolioData.etsy_url = existingItem.etsy_url;
+          }
+          if (existingItem.customization_options) {
+            portfolioData.customization_options = existingItem.customization_options;
+          }
+          if (existingItem.attachments) {
+            portfolioData.attachments = existingItem.attachments;
+          }
+        }
+
+        if (existingItem) {
+          // Update existing item
+          await base44.asServiceRole.entities.PortfolioItem.update(existingItem.id, portfolioData);
+          results.updated++;
+          console.log(`Row ${rowNum}: Updated existing item: ${title}`);
+        } else {
+          // Create new item
+          await base44.asServiceRole.entities.PortfolioItem.create(portfolioData);
+          results.imported++;
+          console.log(`Row ${rowNum}: Created new item: ${title}`);
+        }
 
       } catch (rowError) {
-        results.failed.push({ row: rowNum, reason: rowError.message });
+        console.error(`Row ${rowNum} error:`, rowError);
+        results.failed.push({ 
+          row: rowNum, 
+          title: row.TITLE || 'Unknown',
+          reason: rowError.message 
+        });
       }
     }
+
+    console.log('Import complete:', results);
 
     return Response.json({
       success: true,
@@ -121,7 +206,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Import error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ 
+      success: false,
+      error: error.message,
+      details: error.stack 
+    }, { status: 500 });
   }
 });
 
@@ -156,36 +245,62 @@ function parseCSVLine(line) {
   return result;
 }
 
-// Fetch image from URL and upload to storage
-async function fetchAndUploadImage(url, base44) {
-  // Fetch the image
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; ImageFetcher/1.0)'
+// Fetch image from URL and upload to storage with timeout
+async function fetchAndUploadImageWithTimeout(url, base44, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    // Fetch the image with timeout
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; ImageFetcher/1.0)',
+        'Accept': 'image/*'
+      }
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
-  });
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    
+    // Validate content type
+    if (!contentType.startsWith('image/')) {
+      throw new Error(`Invalid content type: ${contentType}`);
+    }
+
+    const blob = await response.blob();
+    
+    // Validate blob size (max 10MB)
+    if (blob.size > 10 * 1024 * 1024) {
+      throw new Error('Image too large (max 10MB)');
+    }
+    
+    // Determine file extension
+    let ext = 'jpg';
+    if (contentType.includes('png')) ext = 'png';
+    else if (contentType.includes('gif')) ext = 'gif';
+    else if (contentType.includes('webp')) ext = 'webp';
+
+    // Create a File object
+    const filename = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
+    const file = new File([blob], filename, { type: contentType });
+
+    // Upload using the integration
+    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+    
+    return file_url;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Image fetch timeout');
+    }
+    throw error;
   }
-
-  const contentType = response.headers.get('content-type') || 'image/jpeg';
-  const blob = await response.blob();
-  
-  // Determine file extension
-  let ext = 'jpg';
-  if (contentType.includes('png')) ext = 'png';
-  else if (contentType.includes('gif')) ext = 'gif';
-  else if (contentType.includes('webp')) ext = 'webp';
-
-  // Create a File object
-  const filename = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
-  const file = new File([blob], filename, { type: contentType });
-
-  // Upload using the integration
-  const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file });
-  
-  return file_url;
 }
 
 // Auto-categorize based on title and tags

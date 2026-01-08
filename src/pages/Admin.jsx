@@ -208,22 +208,43 @@ export default function Admin() {
       // Validate it looks like a CSV with expected headers
       const firstLine = csvContent.split('\n')[0].toUpperCase();
       if (!firstLine.includes('TITLE')) {
-        alert('Invalid CSV: Missing TITLE column header');
-        setImporting(false);
-        e.target.value = '';
+        alert('Invalid CSV: Missing TITLE column header.\n\nExpected columns: TITLE, DESCRIPTION, MATERIALS, TAGS, SKU, IMAGE1-IMAGE10');
         return;
       }
 
-      const { data } = await base44.functions.invoke('importListingsCSV', { csvContent });
+      console.log('Invoking import function...');
+      const response = await base44.functions.invoke('importListingsCSV', { csvContent });
+      console.log('Import response:', response);
+      
+      if (!response || !response.data) {
+        throw new Error('No response from import function');
+      }
+
+      const { data } = response;
       
       if (data.success === false || data.error) {
-        alert(`CSV Import Failed\n\n${data.error || 'Unknown error'}`);
-      } else {
+        alert(`CSV Import Failed\n\n${data.error || 'Unknown error'}\n\n${data.details || ''}`);
+      } else if (data.results) {
         setImportResults(data.results);
         queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+        
+        // Show success message
+        const { imported, updated, failed } = data.results;
+        const summary = [
+          imported > 0 ? `✓ Created ${imported} new items` : '',
+          updated > 0 ? `✓ Updated ${updated} existing items` : '',
+          failed?.length > 0 ? `⚠ ${failed.length} items failed` : ''
+        ].filter(Boolean).join('\n');
+        
+        if (summary) {
+          alert(`Import Complete\n\n${summary}`);
+        }
+      } else {
+        throw new Error('Invalid response format');
       }
     } catch (error) {
-      alert('Import failed: ' + error.message);
+      console.error('Import error:', error);
+      alert(`Import failed: ${error.message}\n\nPlease check the console for details.`);
     } finally {
       setImporting(false);
       e.target.value = '';
@@ -275,8 +296,8 @@ export default function Admin() {
               <div className="flex gap-2">
                 <label
                   htmlFor="csv-upload"
-                  className={`inline-flex items-center gap-2 px-4 py-2 border border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white rounded-md cursor-pointer transition-colors ${
-                    importing ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`inline-flex items-center gap-2 px-4 py-2 border border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white rounded-md transition-colors ${
+                    importing ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
                   }`}
                 >
                   {importing ? (
@@ -310,29 +331,55 @@ export default function Admin() {
             </div>
 
             {importResults && (
-              <div className="mb-6 p-4 bg-white rounded-sm border border-[#E8E6E3]">
-                <h3 className="font-medium text-[#2D2D2D] mb-2">
-                  CSV Import Complete
-                </h3>
-                <div className="text-sm text-[#6B6B6B] space-y-1">
+              <div className="mb-6 p-4 bg-white rounded-sm border-2 border-[#C4A962] shadow-sm">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-medium text-[#2D2D2D] text-lg">
+                    Import Complete
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setImportResults(null)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 mb-3">
                   {importResults.imported > 0 && (
-                    <p>✓ Imported {importResults.imported} new items</p>
+                    <div className="bg-green-50 p-3 rounded">
+                      <p className="text-2xl font-bold text-green-700">{importResults.imported}</p>
+                      <p className="text-xs text-green-700">New items</p>
+                    </div>
                   )}
                   {importResults.updated > 0 && (
-                    <p>✓ Updated {importResults.updated} existing items</p>
+                    <div className="bg-blue-50 p-3 rounded">
+                      <p className="text-2xl font-bold text-blue-700">{importResults.updated}</p>
+                      <p className="text-xs text-blue-700">Updated items</p>
+                    </div>
                   )}
                   {importResults.skipped > 0 && (
-                    <p>• Skipped {importResults.skipped} duplicates</p>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-2xl font-bold text-gray-600">{importResults.skipped}</p>
+                      <p className="text-xs text-gray-600">Skipped (empty)</p>
+                    </div>
                   )}
                 </div>
+
+                <p className="text-xs text-[#6B6B6B]/60">
+                  Processed {importResults.total} rows from CSV
+                </p>
+
                 {importResults.failed?.length > 0 && (
-                  <details className="text-xs text-red-600 mt-3">
-                    <summary className="cursor-pointer font-medium">
-                      {importResults.failed.length} failed
+                  <details className="mt-4 p-3 bg-red-50 rounded">
+                    <summary className="cursor-pointer font-medium text-sm text-red-700">
+                      ⚠ {importResults.failed.length} items failed to import
                     </summary>
-                    <ul className="mt-2 space-y-1">
+                    <ul className="mt-2 space-y-1 text-xs text-red-600">
                       {importResults.failed.map((f, i) => (
-                        <li key={i}>{f.title}: {f.reason}</li>
+                        <li key={i}>
+                          <strong>Row {f.row}</strong> ({f.title}): {f.reason}
+                        </li>
                       ))}
                     </ul>
                   </details>
