@@ -17,15 +17,15 @@ Deno.serve(async (req) => {
 
     console.log('Starting CSV import...');
 
-    // Parse CSV
-    const lines = csvContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    // Parse CSV properly handling multiline quoted fields
+    const rows = parseCSV(csvContent);
     
-    if (lines.length < 2) {
+    if (rows.length < 2) {
       return Response.json({ error: 'CSV must have headers and at least one data row' }, { status: 400 });
     }
 
     // Parse headers
-    const headers = parseCSVLine(lines[0]).map(h => h.toUpperCase().trim());
+    const headers = rows[0].map(h => h.toUpperCase().trim());
     
     // Validate required headers
     const requiredHeaders = ['TITLE'];
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Processing ${lines.length - 1} rows...`);
+    console.log(`Processing ${rows.length - 1} rows...`);
 
     const results = {
       imported: 0,
