@@ -8,6 +8,7 @@ const categories = [
   { key: "corporate", label: "Corporate" },
   { key: "home", label: "Home Décor" },
   { key: "gifts", label: "Gifts" },
+  { key: "specialty", label: "Specialty" },
 ];
 
 export default function CategoryFilter({ activeCategory, onChange }) {

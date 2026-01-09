@@ -367,5 +367,5 @@ function autoCategorizeListing(title, tags) {
     return 'gifts';
   }
   
-  return 'home';
+  return 'specialty';
 }
