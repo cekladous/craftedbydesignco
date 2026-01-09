@@ -24,9 +24,9 @@ export default function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <p className="text-[10px] tracking-[0.3em] uppercase text-[#C4A962] mb-4">
+          <p className="text-[10px] tracking-[0.3em] uppercase text-[#C4A962] mb-3">
             Client Love
           </p>
           <h2 className="font-serif text-4xl md:text-5xl text-[#2D2D2D]">
@@ -34,7 +34,7 @@ export default function Testimonials() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -42,13 +42,13 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white p-8 rounded-sm shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white p-5 rounded-sm shadow-sm hover:shadow-md transition-shadow flex flex-col"
             >
-              <div className="flex items-center gap-1 mb-4">
+              <div className="flex items-center gap-1 mb-3">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-4 h-4 ${
+                    className={`w-3 h-3 ${
                       i < (testimonial.rating || 5)
                         ? "text-[#C4A962] fill-current"
                         : "text-[#E8E6E3] fill-current"
@@ -57,14 +57,14 @@ export default function Testimonials() {
                 ))}
               </div>
 
-              <p className="text-[#6B6B6B] leading-relaxed mb-6 italic">
+              <p className="text-[#6B6B6B] leading-snug mb-3 italic text-sm flex-grow">
                 "{testimonial.quote}"
               </p>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between pt-3 border-t border-[#E8E6E3]">
+                <div className="flex items-center gap-2">
                   {testimonial.image_url ? (
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-[#E8E6E3]">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-[#E8E6E3]">
                       <img
                         src={testimonial.image_url}
                         alt={testimonial.customer_name}
@@ -72,14 +72,14 @@ export default function Testimonials() {
                       />
                     </div>
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-[#C4A962]/10 flex items-center justify-center">
-                      <span className="text-[#C4A962] font-medium text-lg">
+                    <div className="w-10 h-10 rounded-full bg-[#C4A962]/10 flex items-center justify-center">
+                      <span className="text-[#C4A962] font-medium text-sm">
                         {testimonial.customer_name.charAt(0)}
                       </span>
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-[#2D2D2D]">
+                    <p className="font-medium text-[#2D2D2D] text-sm">
                       {testimonial.customer_name}
                     </p>
                   </div>
