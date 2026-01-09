@@ -103,6 +103,8 @@ export default function Admin() {
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
   const [generatingSEO, setGeneratingSEO] = useState(false);
+  const [bulkGeneratingSEO, setBulkGeneratingSEO] = useState(false);
+  const [seoProgress, setSeoProgress] = useState({ current: 0, total: 0 });
 
 
   // Check admin access
@@ -387,6 +389,88 @@ Focus on keywords like: laser cutting, laser engraving, custom design, personali
     }
   };
 
+  const generateSEOForItem = async (item) => {
+    const context = `
+Product: ${item.name}
+Category: ${categories.find(c => c.value === item.category)?.label || item.category}
+Description: ${item.description}
+Materials: ${(item.materials || []).join(', ')}
+Customization: ${item.customization_options || 'None'}
+    `.trim();
+
+    const response = await base44.integrations.Core.InvokeLLM({
+      prompt: `You are an SEO expert for a custom laser-cutting and engraving business called "Crafted By Design Co."
+
+Based on this product information:
+${context}
+
+Generate optimized SEO content with the following JSON schema:
+- seo_title: An engaging, keyword-rich title (max 60 chars) that would rank well in search
+- seo_description: A compelling meta description (max 160 chars) that describes the product and includes a call-to-action
+- seo_keywords: Comma-separated keywords (10-15 keywords) relevant to laser cutting, custom design, and this specific product
+
+Focus on keywords like: laser cutting, laser engraving, custom design, personalized gifts, and category-specific terms.`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          seo_title: { type: "string" },
+          seo_description: { type: "string" },
+          seo_keywords: { type: "string" }
+        },
+        required: ["seo_title", "seo_description", "seo_keywords"]
+      }
+    });
+
+    return response;
+  };
+
+  const bulkGenerateSEO = async () => {
+    const itemsNeedingSEO = portfolioItems.filter(
+      item => !item.seo_title || !item.seo_description || !item.seo_keywords
+    );
+
+    if (itemsNeedingSEO.length === 0) {
+      alert('All items already have SEO data!');
+      return;
+    }
+
+    if (!confirm(`Generate SEO for ${itemsNeedingSEO.length} items? This may take a few minutes.`)) {
+      return;
+    }
+
+    setBulkGeneratingSEO(true);
+    setSeoProgress({ current: 0, total: itemsNeedingSEO.length });
+
+    let successful = 0;
+    let failed = 0;
+
+    for (let i = 0; i < itemsNeedingSEO.length; i++) {
+      const item = itemsNeedingSEO[i];
+      setSeoProgress({ current: i + 1, total: itemsNeedingSEO.length });
+
+      try {
+        const seoData = await generateSEOForItem(item);
+        if (seoData) {
+          await base44.entities.PortfolioItem.update(item.id, {
+            seo_title: seoData.seo_title,
+            seo_description: seoData.seo_description,
+            seo_keywords: seoData.seo_keywords
+          });
+          successful++;
+        }
+      } catch (error) {
+        console.error(`Failed to generate SEO for ${item.name}:`, error);
+        failed++;
+      }
+    }
+
+    setBulkGeneratingSEO(false);
+    setSeoProgress({ current: 0, total: 0 });
+    queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+
+    alert(`SEO Generation Complete!\n\n✓ Success: ${successful}\n✗ Failed: ${failed}`);
+  };
+
   const handleCsvUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -511,21 +595,61 @@ Focus on keywords like: laser cutting, laser engraving, custom design, personali
 
           {/* Portfolio Tab */}
           <TabsContent value="portfolio">
+            {bulkGeneratingSEO && (
+              <div className="mb-4 p-4 bg-[#C4A962]/10 rounded-sm border border-[#C4A962]">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#C4A962]" />
+                  <div className="flex-1">
+                    <p className="font-medium text-[#2D2D2D]">Generating SEO...</p>
+                    <p className="text-sm text-[#6B6B6B]">
+                      Processing {seoProgress.current} of {seoProgress.total} items
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-[#C4A962]">
+                      {Math.round((seoProgress.current / seoProgress.total) * 100)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
                 <p className="text-[#6B6B6B]">{portfolioItems.length} items</p>
                 {portfolioItems.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setBulkDeleteMode(!bulkDeleteMode);
-                      setSelectedItems(new Set());
-                    }}
-                    className={bulkDeleteMode ? "bg-[#C4A962] text-white" : ""}
-                  >
-                    {bulkDeleteMode ? "Cancel Selection" : "Select Items"}
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setBulkDeleteMode(!bulkDeleteMode);
+                        setSelectedItems(new Set());
+                      }}
+                      className={bulkDeleteMode ? "bg-[#C4A962] text-white" : ""}
+                    >
+                      {bulkDeleteMode ? "Cancel Selection" : "Select Items"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={bulkGenerateSEO}
+                      disabled={bulkGeneratingSEO}
+                      className="text-[#C4A962] border-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+                    >
+                      {bulkGeneratingSEO ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Generate SEO for All
+                        </>
+                      )}
+                    </Button>
+                  </>
                 )}
                 {bulkDeleteMode && selectedItems.size > 0 && (
                   <>
