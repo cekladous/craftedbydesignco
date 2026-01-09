@@ -22,6 +22,8 @@ import {
   Loader2,
   MessageSquare,
   ExternalLink,
+  Upload,
+  X,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 
@@ -41,6 +43,8 @@ export default function TestimonialsManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyTestimonial);
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState(null);
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ["admin-testimonials"],
@@ -116,18 +120,133 @@ export default function TestimonialsManager() {
     reorderItems.mutate(items);
   };
 
+  const handleJsonUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.json')) {
+      alert('Please upload a .json file');
+      return;
+    }
+
+    setImporting(true);
+    setImportResults(null);
+
+    try {
+      const fileContent = await file.text();
+
+      console.log('Uploading JSON to import function...');
+      const response = await base44.functions.invoke('importEtsyReviews', { 
+        fileContent 
+      });
+
+      if (!response?.data) {
+        throw new Error('Import function returned no data');
+      }
+
+      const { data } = response;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setImportResults(data);
+      queryClient.invalidateQueries({ queryKey: ["admin-testimonials"] });
+
+      const { imported, skipped, total } = data;
+
+      if (imported === 0 && skipped === total) {
+        alert(`No new reviews imported\n\nAll ${total} reviews already exist in your testimonials.`);
+      } else {
+        alert(`Import Successful\n\n✓ Imported: ${imported} new reviews\n○ Skipped: ${skipped} duplicates\n📊 Total: ${total}`);
+      }
+    } catch (error) {
+      console.error('JSON Import Error:', error);
+      alert(`Import Failed\n\n${error.message}\n\nPlease check:\n• File is valid JSON\n• File contains Etsy review data\n• Network connection is stable`);
+      setImportResults(null);
+    } finally {
+      setImporting(false);
+      e.target.value = '';
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <p className="text-[#6B6B6B]">{testimonials.length} testimonials</p>
-        <Button
-          onClick={() => openDialog()}
-          className="bg-[#2D2D2D] hover:bg-[#C4A962]"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Testimonial
-        </Button>
+        <div className="flex gap-2">
+          <label
+            htmlFor="json-upload"
+            className={`inline-flex items-center gap-2 px-4 py-2 border border-[#C4A962] text-[#C4A962] hover:bg-[#C4A962] hover:text-white rounded-md transition-colors ${
+              importing ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+            }`}
+          >
+            {importing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Import Etsy Reviews (JSON)
+              </>
+            )}
+          </label>
+          <input
+            id="json-upload"
+            type="file"
+            accept=".json"
+            onChange={handleJsonUpload}
+            disabled={importing}
+            className="hidden"
+          />
+          <Button
+            onClick={() => openDialog()}
+            className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Testimonial
+          </Button>
+        </div>
       </div>
+
+      {importResults && (
+        <div className="mb-6 p-4 bg-white rounded-sm border-2 border-[#C4A962] shadow-sm">
+          <div className="flex items-start justify-between mb-3">
+            <h3 className="font-medium text-[#2D2D2D] text-lg">
+              Import Complete
+            </h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setImportResults(null)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-3">
+            {importResults.imported > 0 && (
+              <div className="bg-green-50 p-3 rounded">
+                <p className="text-2xl font-bold text-green-700">{importResults.imported}</p>
+                <p className="text-xs text-green-700">Imported</p>
+              </div>
+            )}
+            {importResults.skipped > 0 && (
+              <div className="bg-blue-50 p-3 rounded">
+                <p className="text-2xl font-bold text-blue-700">{importResults.skipped}</p>
+                <p className="text-xs text-blue-700">Skipped (duplicates)</p>
+              </div>
+            )}
+            <div className="bg-slate-50 p-3 rounded">
+              <p className="text-2xl font-bold text-slate-700">{importResults.total}</p>
+              <p className="text-xs text-slate-700">Total in file</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
