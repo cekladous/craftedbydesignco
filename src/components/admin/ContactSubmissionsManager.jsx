@@ -21,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileImage,
+  Download,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -33,6 +34,11 @@ const categories = [
   { value: "specialty", label: "Specialty Items" },
   { value: "other", label: "Other" },
 ];
+
+const categoryLabels = categories.reduce((acc, cat) => {
+  acc[cat.value] = cat.label;
+  return acc;
+}, {});
 
 const inquiryStatuses = [
   { value: "new", label: "New", color: "bg-blue-100 text-blue-800" },
@@ -47,6 +53,7 @@ export default function ContactSubmissionsManager() {
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: inquiries = [], isLoading } = useQuery({
     queryKey: ["contact-submissions"],
@@ -92,6 +99,40 @@ export default function ContactSubmissionsManager() {
 
   const unreadCount = inquiries.filter((i) => !i.read).length;
 
+  const filteredInquiries = statusFilter === "all" 
+    ? inquiries 
+    : inquiries.filter(i => i.status === statusFilter);
+
+  const exportToExcel = () => {
+    const headers = ["Date", "Name", "Email", "Phone", "Category", "Status", "Event Date", "Message", "Notes"];
+    const rows = filteredInquiries.map(inq => [
+      new Date(inq.created_date).toLocaleDateString(),
+      inq.name,
+      inq.email,
+      inq.phone || "",
+      categoryLabels[inq.category] || inq.category || "",
+      inquiryStatuses.find(s => s.value === inq.status)?.label || inq.status,
+      inq.event_date || "",
+      inq.message?.replace(/\n/g, " ") || "",
+      inq.notes?.replace(/\n/g, " ") || ""
+    ]);
+
+    const csv = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `contact-submissions-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -120,10 +161,49 @@ export default function ContactSubmissionsManager() {
             </Badge>
           )}
         </p>
+        <Button
+          variant="outline"
+          onClick={exportToExcel}
+          disabled={filteredInquiries.length === 0}
+          className="text-[#C4A962] border-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export to Excel
+        </Button>
       </div>
 
-      <div className="space-y-3">
-        {inquiries.map((inquiry) => (
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+        <Button
+          variant={statusFilter === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setStatusFilter("all")}
+          className={statusFilter === "all" ? "bg-[#2D2D2D]" : ""}
+        >
+          All ({inquiries.length})
+        </Button>
+        {inquiryStatuses.map((status) => (
+          <Button
+            key={status.value}
+            variant={statusFilter === status.value ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter(status.value)}
+            className={statusFilter === status.value ? "bg-[#2D2D2D]" : ""}
+          >
+            {status.label} ({inquiries.filter(i => i.status === status.value).length})
+          </Button>
+        ))}
+      </div>
+
+      {filteredInquiries.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-sm">
+          <MessageSquare className="w-12 h-12 mx-auto text-[#E8E6E3] mb-4" />
+          <p className="text-[#6B6B6B]">
+            No {statusFilter === "all" ? "" : inquiryStatuses.find(s => s.value === statusFilter)?.label.toLowerCase()} submissions
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredInquiries.map((inquiry) => (
           <motion.div
             key={inquiry.id}
             initial={{ opacity: 0, y: 10 }}
@@ -260,34 +340,46 @@ export default function ContactSubmissionsManager() {
                   </p>
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openNotesDialog(inquiry)}
-                      className="text-[#2D2D2D] border-[#E8E6E3]"
-                    >
-                      {inquiry.notes ? "Edit Notes" : "Add Notes"}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm("Delete this submission?")) {
-                          deleteInquiry.mutate(inquiry.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete
-                    </Button>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                   <select
+                     value={inquiry.status}
+                     onChange={(e) => updateInquiry.mutate({ id: inquiry.id, data: { status: e.target.value } })}
+                     className="px-3 py-1.5 text-sm border border-[#E8E6E3] rounded-md bg-white text-[#2D2D2D] focus:border-[#C4A962] focus:outline-none focus:ring-1 focus:ring-[#C4A962]"
+                   >
+                     {inquiryStatuses.map((status) => (
+                       <option key={status.value} value={status.value}>
+                         {status.label}
+                       </option>
+                     ))}
+                   </select>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => openNotesDialog(inquiry)}
+                     className="text-[#2D2D2D] border-[#E8E6E3]"
+                   >
+                     {inquiry.notes ? "Edit Notes" : "Add Notes"}
+                   </Button>
+                   <Button
+                     variant="destructive"
+                     size="sm"
+                     onClick={() => {
+                       if (confirm("Delete this submission?")) {
+                         deleteInquiry.mutate(inquiry.id);
+                       }
+                     }}
+                   >
+                     <Trash2 className="w-4 h-4 mr-1" />
+                     Delete
+                   </Button>
                   </div>
                 </div>
               )}
             </div>
           </motion.div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Notes Dialog */}
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
