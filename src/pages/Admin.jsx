@@ -86,7 +86,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("portfolio");
+  const [activeTab, setActiveTab] = useState("inquiries");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
@@ -426,12 +426,6 @@ export default function Admin() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-[#E8E6E3] mb-8">
-            <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
-            <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
-            <TabsTrigger value="specialties">Specialties</TabsTrigger>
-            <TabsTrigger value="experience">Experience</TabsTrigger>
-            <TabsTrigger value="homepage">Homepage Settings</TabsTrigger>
-            <TabsTrigger value="attachments">Attachments</TabsTrigger>
             <TabsTrigger value="inquiries">
               Inquiries
               {inquiries.filter((i) => i.status === "new").length > 0 && (
@@ -440,6 +434,12 @@ export default function Admin() {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="portfolio">Portfolio Items</TabsTrigger>
+            <TabsTrigger value="capabilities">Capabilities & Materials</TabsTrigger>
+            <TabsTrigger value="specialties">Specialties</TabsTrigger>
+            <TabsTrigger value="experience">Experience</TabsTrigger>
+            <TabsTrigger value="homepage">Homepage Settings</TabsTrigger>
+            <TabsTrigger value="attachments">Attachments</TabsTrigger>
           </TabsList>
 
           {/* Portfolio Tab */}
