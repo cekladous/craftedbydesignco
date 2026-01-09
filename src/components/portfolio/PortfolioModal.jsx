@@ -83,7 +83,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="relative w-full max-w-5xl max-h-[90vh] bg-[#FAF9F7] rounded-sm overflow-hidden flex flex-col lg:flex-row"
+            className="relative w-full max-w-6xl max-h-[95vh] bg-[#FAF9F7] rounded-sm overflow-hidden flex flex-col lg:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -95,7 +95,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
             </button>
 
             {/* Media Section */}
-            <div className="relative lg:w-3/5 min-h-[50vh] lg:min-h-full bg-[#E8E6E3] flex flex-col">
+            <div className="relative lg:w-2/3 h-[50vh] lg:h-auto bg-[#E8E6E3] flex flex-col">
               {/* Media Tabs */}
               {hasImages && hasVideos && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-white/90 rounded-full p-1">
@@ -122,7 +122,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                 </div>
               )}
 
-              <div className="flex-1 relative flex items-center justify-center min-h-0">
+              <div className="flex-1 relative flex items-center justify-center p-4">
                 {currentMediaType === "image" ? (
                   hasImages ? (
                     <>
@@ -200,7 +200,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
             </div>
 
             {/* Content Section */}
-            <div className="lg:w-2/5 p-8 lg:p-10 overflow-y-auto">
+            <div className="lg:w-1/3 p-8 lg:p-10 overflow-y-auto">
               <p className="text-[10px] tracking-widest uppercase text-[#C4A962] mb-2">
                 {categoryLabels[item.category] || item.category}
               </p>
