@@ -30,7 +30,7 @@ export default function SiteSettingsManager() {
       setFormData({
         hero_image: settings.hero_image || "",
         hero_headline: settings.hero_headline || "Custom Laser-Cut\n& Engraved\nDesigns",
-        hero_subheadline: settings.hero_subheadline || "Handcrafted pieces for weddings, milestones, and moments worth celebrating. Made in New Jersey with precision and care.",
+        hero_subheadline: settings.hero_subheadline || "Handcrafted pieces for weddings, corporate events, milestones, and moments worth celebrating. Made in New Jersey with precision and care.",
         about_image: settings.about_image || "",
       });
     }
