@@ -104,6 +104,24 @@ View all inquiries in your admin dashboard.
         body: emailBody
       });
 
+      // Send auto-reply to customer
+      await base44.integrations.Core.SendEmail({
+        from_name: "Crafted By Design Co.",
+        to: data.email,
+        subject: "We've Received Your Inquiry",
+        body: `Hi ${data.name},
+
+Thank you for reaching out to Crafted By Design Co.! We've received your inquiry and will be in touch shortly.
+
+We're excited to learn more about your project and look forward to connecting with you soon.
+
+Best regards,
+Crafted By Design Co.
+
+---
+This is an automated confirmation. Please do not reply to this email.`
+      });
+
       return inquiry;
     },
     onSuccess: () => setSubmitted(true),
