@@ -200,6 +200,11 @@ export default function Admin() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-inquiries"] }),
   });
 
+  const deleteInquiry = useMutation({
+    mutationFn: (id) => base44.entities.Inquiry.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-inquiries"] }),
+  });
+
   const openDialog = (item = null) => {
     if (item) {
       setEditingItem(item);
@@ -798,23 +803,36 @@ export default function Admin() {
                         </div>
                       </div>
 
-                      <Select
-                        value={inquiry.status}
-                        onValueChange={(value) =>
-                          updateInquiry.mutate({ id: inquiry.id, data: { status: value } })
-                        }
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {inquiryStatuses.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={inquiry.status}
+                          onValueChange={(value) =>
+                            updateInquiry.mutate({ id: inquiry.id, data: { status: value } })
+                          }
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {inquiryStatuses.map((status) => (
+                              <SelectItem key={status.value} value={status.value}>
+                                {status.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (confirm("Delete this inquiry?")) {
+                              deleteInquiry.mutate(inquiry.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
                     </div>
 
                     {inquiry.category && (
