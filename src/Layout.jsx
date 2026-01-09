@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { base44 } from "@/api/base44Client";
 import { Menu, X, Instagram, Facebook } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Layout({ children, currentPageName }) {
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -30,7 +31,7 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [currentPageName]);
+  }, [location.pathname, location.search]);
 
   const navLinks = [
     { name: "Portfolio", page: "Portfolio" },
