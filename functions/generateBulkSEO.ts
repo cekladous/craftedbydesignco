@@ -30,18 +30,26 @@ Deno.serve(async (req) => {
       items: []
     };
 
-    for (const item of itemsNeedingSEO) {
-      try {
-        const context = `
+    // Process items in batches to avoid timeout
+    const BATCH_SIZE = 5;
+    const DELAY_BETWEEN_BATCHES = 500; // ms
+
+    for (let i = 0; i < itemsNeedingSEO.length; i += BATCH_SIZE) {
+      const batch = itemsNeedingSEO.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(
+        batch.map(async (item) => {
+          try {
+            const context = `
 Product: ${item.name}
 Category: ${item.category}
 Description: ${item.description}
 Materials: ${(item.materials || []).join(', ')}
 Customization: ${item.customization_options || 'None'}
-        `.trim();
+            `.trim();
 
-        const seoData = await base44.asServiceRole.integrations.Core.InvokeLLM({
-          prompt: `You are an SEO expert for a custom laser-cutting and engraving business called "Crafted By Design Co."
+            const seoData = await base44.asServiceRole.integrations.Core.InvokeLLM({
+              prompt: `You are an SEO expert for a custom laser-cutting and engraving business called "Crafted By Design Co."
 
 Based on this product information:
 ${context}
@@ -52,32 +60,40 @@ Generate optimized SEO content with the following JSON schema:
 - seo_keywords: Comma-separated keywords (10-15 keywords) relevant to laser cutting, custom design, and this specific product
 
 Focus on keywords like: laser cutting, laser engraving, custom design, personalized gifts, and category-specific terms.`,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              seo_title: { type: "string" },
-              seo_description: { type: "string" },
-              seo_keywords: { type: "string" }
-            },
-            required: ["seo_title", "seo_description", "seo_keywords"]
-          }
-        });
+              response_json_schema: {
+                type: "object",
+                properties: {
+                  seo_title: { type: "string" },
+                  seo_description: { type: "string" },
+                  seo_keywords: { type: "string" }
+                },
+                required: ["seo_title", "seo_description", "seo_keywords"]
+              }
+            });
 
-        if (seoData) {
-          await base44.asServiceRole.entities.PortfolioItem.update(item.id, {
-            seo_title: seoData.seo_title,
-            seo_description: seoData.seo_description,
-            seo_keywords: seoData.seo_keywords
-          });
-          results.successful++;
-          results.items.push({
-            name: item.name,
-            seo_title: seoData.seo_title
-          });
-        }
-      } catch (error) {
-        console.error(`Failed to generate SEO for ${item.name}:`, error);
-        results.failed++;
+            if (seoData) {
+              await base44.asServiceRole.entities.PortfolioItem.update(item.id, {
+                seo_title: seoData.seo_title,
+                seo_description: seoData.seo_description,
+                seo_keywords: seoData.seo_keywords
+              });
+              results.successful++;
+              results.items.push({
+                name: item.name,
+                seo_title: seoData.seo_title
+              });
+              console.log(`✓ Generated SEO for: ${item.name}`);
+            }
+          } catch (error) {
+            console.error(`✗ Failed to generate SEO for ${item.name}:`, error.message);
+            results.failed++;
+          }
+        })
+      );
+
+      // Add delay between batches to avoid rate limiting
+      if (i + BATCH_SIZE < itemsNeedingSEO.length) {
+        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
       }
     }
 
