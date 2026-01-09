@@ -441,34 +441,23 @@ Focus on keywords like: laser cutting, laser engraving, custom design, personali
     setBulkGeneratingSEO(true);
     setSeoProgress({ current: 0, total: itemsNeedingSEO.length });
 
-    let successful = 0;
-    let failed = 0;
-
-    for (let i = 0; i < itemsNeedingSEO.length; i++) {
-      const item = itemsNeedingSEO[i];
-      setSeoProgress({ current: i + 1, total: itemsNeedingSEO.length });
-
-      try {
-        const seoData = await generateSEOForItem(item);
-        if (seoData) {
-          await base44.entities.PortfolioItem.update(item.id, {
-            seo_title: seoData.seo_title,
-            seo_description: seoData.seo_description,
-            seo_keywords: seoData.seo_keywords
-          });
-          successful++;
-        }
-      } catch (error) {
-        console.error(`Failed to generate SEO for ${item.name}:`, error);
-        failed++;
+    try {
+      const response = await base44.functions.invoke('generateBulkSEO');
+      
+      if (response?.data?.success) {
+        const { successful, failed, processed } = response.data;
+        queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
+        alert(`SEO Generation Complete!\n\n✓ Success: ${successful}\n✗ Failed: ${failed}\n📦 Processed: ${processed} items`);
+      } else {
+        throw new Error('Failed to generate SEO');
       }
+    } catch (error) {
+      console.error('Bulk SEO error:', error);
+      alert(`SEO generation failed: ${error.message}`);
+    } finally {
+      setBulkGeneratingSEO(false);
+      setSeoProgress({ current: 0, total: 0 });
     }
-
-    setBulkGeneratingSEO(false);
-    setSeoProgress({ current: 0, total: 0 });
-    queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] });
-
-    alert(`SEO Generation Complete!\n\n✓ Success: ${successful}\n✗ Failed: ${failed}`);
   };
 
   const handleCsvUpload = async (e) => {
