@@ -95,7 +95,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
             </button>
 
             {/* Media Section */}
-            <div className="relative lg:w-3/5 bg-[#E8E6E3] flex flex-col">
+            <div className="relative lg:w-3/5 min-h-[50vh] lg:min-h-full bg-[#E8E6E3] flex flex-col">
               {/* Media Tabs */}
               {hasImages && hasVideos && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-white/90 rounded-full p-1">
@@ -122,7 +122,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                 </div>
               )}
 
-              <div className="flex-1 relative">
+              <div className="flex-1 relative flex items-center justify-center min-h-0">
                 {currentMediaType === "image" ? (
                   hasImages ? (
                     <>
@@ -141,7 +141,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                         <img
                           src={images[currentImageIndex]}
                           alt={item.name}
-                          className="w-full h-full object-contain"
+                          className="max-w-full max-h-full object-contain"
                           onLoad={() => setImageLoading(false)}
                           onError={() => {
                             setImageLoading(false);
