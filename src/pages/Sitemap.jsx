@@ -15,7 +15,7 @@ export default function Sitemap() {
         "display_order"
       );
 
-      const baseUrl = 'https://craftedbydesignco.vercel.app';
+      const baseUrl = 'https://craftedbydesign.co';
       
       const staticPages = [
         { path: '/', changefreq: 'weekly', priority: '1.0' },
