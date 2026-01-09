@@ -38,7 +38,7 @@ export default function PortfolioGrid({ items, onItemClick }) {
               <img
                 src={item.images[0]}
                 alt={item.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
