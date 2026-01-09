@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Hero from "@/components/home/Hero";
 import FeaturedWork from "@/components/home/FeaturedWork";
 import Specialties from "@/components/home/Specialties";
+import Testimonials from "@/components/home/Testimonials";
 import ProcessPreview from "@/components/home/ProcessPreview";
 import CallToAction from "@/components/home/CallToAction";
 import PortfolioModal from "@/components/portfolio/PortfolioModal";
@@ -21,6 +22,7 @@ export default function Home() {
       <Hero />
       <FeaturedWork items={featuredItems} onItemClick={setSelectedItem} />
       <Specialties />
+      <Testimonials />
       <ProcessPreview />
       <CallToAction />
       
