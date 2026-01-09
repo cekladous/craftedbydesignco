@@ -26,6 +26,8 @@ const getFileIcon = (mimeType) => {
 export default function PortfolioModal({ item, isOpen, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentMediaType, setCurrentMediaType] = useState("image");
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   // Fetch attachments if any
   const { data: attachments = [] } = useQuery({
@@ -54,10 +56,14 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setImageError(false);
+    setImageLoading(true);
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setImageError(false);
+    setImageLoading(true);
   };
 
   return (
@@ -120,11 +126,30 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                 {currentMediaType === "image" ? (
                   hasImages ? (
                     <>
-                      <img
-                        src={images[currentImageIndex]}
-                        alt={item.name}
-                        className="w-full h-full object-contain"
-                      />
+                      {imageLoading && !imageError && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#E8E6E3]">
+                          <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#C4A962] border-t-transparent"></div>
+                        </div>
+                      )}
+                      {imageError ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-8">
+                          <ImageIcon className="w-16 h-16 text-[#6B6B6B]/30 mb-4" />
+                          <span className="text-[#6B6B6B] font-serif text-xl mb-2">Image unavailable</span>
+                          <span className="text-[#6B6B6B]/60 text-sm">This image could not be loaded</span>
+                        </div>
+                      ) : (
+                        <img
+                          src={images[currentImageIndex]}
+                          alt={item.name}
+                          className="w-full h-full object-contain"
+                          onLoad={() => setImageLoading(false)}
+                          onError={() => {
+                            setImageLoading(false);
+                            setImageError(true);
+                          }}
+                          style={{ display: imageLoading ? 'none' : 'block' }}
+                        />
+                      )}
                       
                       {hasMultipleImages && (
                         <>
