@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
         // Extract review data (support multiple Etsy JSON formats)
         const reviewId = review.transaction_id || review.review_id || review.id;
         const customerName = cleanEncoding(
-          review.buyer_name || review.customer_name || review.name || 'Anonymous'
+          review.reviewer || review.buyer_name || review.customer_name || review.name || 'Anonymous'
         );
         const reviewText = cleanEncoding(
           review.review || review.message || review.text || review.comment || ''
