@@ -89,7 +89,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
             </button>
 
             {/* Media Section */}
-            <div className="relative lg:w-3/5 aspect-square lg:aspect-auto bg-[#E8E6E3] flex flex-col">
+            <div className="relative lg:w-3/5 bg-[#E8E6E3] flex flex-col">
               {/* Media Tabs */}
               {hasImages && hasVideos && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-white/90 rounded-full p-1">
@@ -123,7 +123,7 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
                       <img
                         src={images[currentImageIndex]}
                         alt={item.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                       
                       {hasMultipleImages && (
