@@ -27,7 +27,10 @@ export default function Portfolio() {
 
   const filteredItems = activeCategory === "all"
     ? items
-    : items.filter((item) => item.category === activeCategory);
+    : items.filter((item) => {
+        const categories = item.categories?.length > 0 ? item.categories : [item.category];
+        return categories.includes(activeCategory);
+      });
 
   return (
     <div className="pt-32 pb-24 px-6 lg:px-12">
