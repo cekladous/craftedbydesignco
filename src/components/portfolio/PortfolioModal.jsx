@@ -24,6 +24,7 @@ const getFileIcon = (mimeType) => {
 
 export default function PortfolioModal({ item, isOpen, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentMediaType, setCurrentMediaType] = useState("image");
 
   // Fetch attachments if any
   const { data: attachments = [] } = useQuery({
@@ -44,7 +45,11 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
   if (!item) return null;
 
   const images = item.images || [];
+  const videos = item.videos || [];
+  const hasImages = images.length > 0;
+  const hasVideos = videos.length > 0;
   const hasMultipleImages = images.length > 1;
+  const hasMultipleVideos = videos.length > 1;
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -80,50 +85,90 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Image Section */}
-            <div className="relative lg:w-3/5 aspect-square lg:aspect-auto bg-[#E8E6E3]">
-              {images.length > 0 ? (
-                <>
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {hasMultipleImages && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                      
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                        {images.map((_, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setCurrentImageIndex(idx)}
-                            className={`w-2 h-2 rounded-full transition-colors ${
-                              idx === currentImageIndex ? "bg-white" : "bg-white/40"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center min-h-[300px]">
-                  <span className="text-[#6B6B6B]/50 font-serif text-xl">No Image</span>
+            {/* Media Section */}
+            <div className="relative lg:w-3/5 aspect-square lg:aspect-auto bg-[#E8E6E3] flex flex-col">
+              {/* Media Tabs */}
+              {hasImages && hasVideos && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-white/90 rounded-full p-1">
+                  <button
+                    onClick={() => setCurrentMediaType("image")}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
+                      currentMediaType === "image"
+                        ? "bg-[#C4A962] text-white"
+                        : "text-[#6B6B6B] hover:text-[#2D2D2D]"
+                    }`}
+                  >
+                    Images
+                  </button>
+                  <button
+                    onClick={() => setCurrentMediaType("video")}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
+                      currentMediaType === "video"
+                        ? "bg-[#C4A962] text-white"
+                        : "text-[#6B6B6B] hover:text-[#2D2D2D]"
+                    }`}
+                  >
+                    Videos
+                  </button>
                 </div>
               )}
+
+              <div className="flex-1 relative">
+                {currentMediaType === "image" ? (
+                  hasImages ? (
+                    <>
+                      <img
+                        src={images[currentImageIndex]}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                      
+                      {hasMultipleImages && (
+                        <>
+                          <button
+                            onClick={prevImage}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={nextImage}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-[#2D2D2D] hover:bg-[#C4A962] hover:text-white transition-colors"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                          
+                          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                            {images.map((_, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => setCurrentImageIndex(idx)}
+                                className={`w-2 h-2 rounded-full transition-colors ${
+                                  idx === currentImageIndex ? "bg-white" : "bg-white/40"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-[#6B6B6B]/50 font-serif text-xl">No Image</span>
+                    </div>
+                  )
+                ) : hasVideos ? (
+                  <video
+                    src={videos[0]}
+                    controls
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-[#6B6B6B]/50 font-serif text-xl">No Video</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Content Section */}

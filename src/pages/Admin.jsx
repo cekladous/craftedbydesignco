@@ -41,6 +41,7 @@ import {
   Upload,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
+import VideoUploader from "@/components/admin/VideoUploader";
 import CapabilitiesManager from "@/components/admin/CapabilitiesManager";
 import SiteSettingsManager from "@/components/admin/SiteSettingsManager";
 import AttachmentsManager from "@/components/admin/AttachmentsManager";
@@ -74,6 +75,7 @@ const emptyItem = {
   description: "",
   materials: [],
   images: [],
+  videos: [],
   etsy_url: "",
   customization_options: "",
   featured: false,
@@ -1016,6 +1018,17 @@ export default function Admin() {
                 <ImageUploader
                   images={formData.images || []}
                   onChange={(newImages) => setFormData({ ...formData, images: newImages })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Videos (MP4)</Label>
+                <p className="text-xs text-[#6B6B6B] mb-2">
+                  Upload or paste video URLs
+                </p>
+                <VideoUploader
+                  videos={formData.videos || []}
+                  onChange={(newVideos) => setFormData({ ...formData, videos: newVideos })}
                 />
               </div>
 
