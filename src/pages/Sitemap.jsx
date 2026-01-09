@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
-export default function SitemapXml() {
+export default function Sitemap() {
   const [xml, setXml] = useState('');
 
   useEffect(() => {

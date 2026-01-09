@@ -5,7 +5,7 @@ import Contact from './pages/Contact';
 import Home from './pages/Home';
 import Portfolio from './pages/Portfolio';
 import Process from './pages/Process';
-import SitemapXml from './pages/SitemapXml';
+import Sitemap from './pages/Sitemap';
 import __Layout from './Layout.jsx';
 
 
@@ -17,7 +17,7 @@ export const PAGES = {
     "Home": Home,
     "Portfolio": Portfolio,
     "Process": Process,
-    "SitemapXml": SitemapXml,
+    "Sitemap": Sitemap,
 }
 
 export const pagesConfig = {
