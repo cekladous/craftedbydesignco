@@ -78,7 +78,27 @@ export default function Contact() {
       // Create inquiry first
       const inquiry = await base44.entities.Inquiry.create(data);
 
-      // Send emails - these must succeed for submission to complete
+      console.log('Created inquiry:', inquiry);
+
+      // Sync to Google Calendar
+      try {
+        console.log('Syncing to calendar...');
+        const calResult = await base44.functions.invoke('syncInquiryToCalendar', { inquiry });
+        console.log('Calendar sync result:', calResult);
+      } catch (error) {
+        console.error('Failed to sync to calendar:', error);
+      }
+
+      // Sync to Google Sheets
+      try {
+        console.log('Syncing to sheets...');
+        const sheetsResult = await base44.functions.invoke('syncInquiryToSheets', { inquiry });
+        console.log('Sheets sync result:', sheetsResult);
+      } catch (error) {
+        console.error('Failed to sync to sheets:', error);
+      }
+
+      // Send emails
       const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
       const emailBody = `
   New inquiry received from your website:
@@ -117,26 +137,6 @@ export default function Contact() {
   Best regards,
   Crafted By Design Co.`
       });
-
-      // Sync to Google Calendar
-      try {
-        console.log('Syncing to calendar...');
-        const calResult = await base44.functions.invoke('syncInquiryToCalendar', { inquiry });
-        console.log('Calendar sync result:', calResult);
-      } catch (error) {
-        console.error('Failed to sync to calendar:', error);
-        // Don't fail the inquiry submission if calendar sync fails
-      }
-
-      // Sync to Google Sheets
-      try {
-        console.log('Syncing to sheets...');
-        const sheetsResult = await base44.functions.invoke('syncInquiryToSheets', { inquiry });
-        console.log('Sheets sync result:', sheetsResult);
-      } catch (error) {
-        console.error('Failed to sync to sheets:', error);
-        // Don't fail the inquiry submission if sheets sync fails
-      }
 
       return inquiry;
     },
