@@ -126,6 +126,14 @@ export default function Contact() {
         // Don't fail the inquiry submission if calendar sync fails
       }
 
+      // Sync to Google Sheets
+      try {
+        await base44.functions.invoke('syncInquiryToSheets', { inquiry });
+      } catch (error) {
+        console.error('Failed to sync to sheets:', error);
+        // Don't fail the inquiry submission if sheets sync fails
+      }
+
       return inquiry;
     },
     onSuccess: () => {
