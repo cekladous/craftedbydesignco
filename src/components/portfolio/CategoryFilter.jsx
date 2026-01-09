@@ -7,7 +7,7 @@ const categories = [
   { key: "baby", label: "Baby & Milestones" },
   { key: "corporate", label: "Corporate" },
   { key: "home", label: "Home Décor" },
-  { key: "gifts", label: "Gifts" },
+  { key: "gifts", label: "Personalized Gifts" },
   { key: "specialty", label: "Specialty" },
 ];
 
