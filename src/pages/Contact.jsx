@@ -77,10 +77,8 @@ export default function Contact() {
     mutationFn: async (data) => {
       const inquiry = await base44.entities.Inquiry.create(data);
       
-      // Send email notifications (don't let email failures block the submission)
-      try {
-        const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
-        const emailBody = `
+      const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
+      const emailBody = `
 New inquiry received from your website:
 
 Name: ${data.name}
@@ -96,30 +94,27 @@ ${data.vision_images?.length > 0 ? `\nInspiration Images Attached: ${data.vision
 
 ---
 View all inquiries in your admin dashboard.
-        `.trim();
+      `.trim();
 
-        await base44.integrations.Core.SendEmail({
-          from_name: "Crafted By Design Co. Website",
-          to: "craftedxdesignco@gmail.com",
-          subject: `New Inquiry: ${data.name} - ${categoryLabel}`,
-          body: emailBody
-        });
+      await base44.integrations.Core.SendEmail({
+        from_name: "Crafted By Design Co. Website",
+        to: "craftedxdesignco@gmail.com",
+        subject: `New Inquiry: ${data.name} - ${categoryLabel}`,
+        body: emailBody
+      });
 
-        // Send confirmation to customer
-        await base44.integrations.Core.SendEmail({
-          from_name: "Crafted By Design Co.",
-          to: data.email,
-          subject: "Thank You for Your Inquiry",
-          body: `Hi ${data.name},
+      // Send confirmation to customer
+      await base44.integrations.Core.SendEmail({
+        from_name: "Crafted By Design Co.",
+        to: data.email,
+        subject: "Thank You for Your Inquiry",
+        body: `Hi ${data.name},
 
 Thank you for reaching out! We've received your inquiry and will be in touch shortly.
 
 Best regards,
 Crafted By Design Co.`
-        });
-      } catch (emailError) {
-        console.error("Failed to send emails:", emailError);
-      }
+      });
 
       return inquiry;
     },
