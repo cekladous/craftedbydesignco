@@ -104,6 +104,19 @@ View all inquiries in your admin dashboard.
         body: emailBody
       });
 
+      // Send confirmation to customer
+      await base44.integrations.Core.SendEmail({
+        from_name: "Crafted By Design Co.",
+        to: data.email,
+        subject: "Thank You for Your Inquiry",
+        body: `Hi ${data.name},
+
+Thank you for reaching out! We've received your inquiry and will be in touch shortly.
+
+Best regards,
+Crafted By Design Co.`
+      });
+
       return inquiry;
     },
     onSuccess: () => setSubmitted(true),
