@@ -75,10 +75,13 @@ export default function Contact() {
 
   const createInquiry = useMutation({
     mutationFn: async (data) => {
+      // Create inquiry first
       const inquiry = await base44.entities.Inquiry.create(data);
       
-      const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
-      const emailBody = `
+      // Send emails (don't block on email failures)
+      try {
+        const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
+        const emailBody = `
 New inquiry received from your website:
 
 Name: ${data.name}
@@ -94,33 +97,48 @@ ${data.vision_images?.length > 0 ? `\nInspiration Images Attached: ${data.vision
 
 ---
 View all inquiries in your admin dashboard.
-      `.trim();
+        `.trim();
 
-      await base44.integrations.Core.SendEmail({
-        from_name: "Crafted By Design Co. Website",
-        to: "craftedxdesignco@gmail.com",
-        subject: `New Inquiry: ${data.name} - ${categoryLabel}`,
-        body: emailBody
-      });
+        await base44.integrations.Core.SendEmail({
+          from_name: "Crafted By Design Co. Website",
+          to: "craftedxdesignco@gmail.com",
+          subject: `New Inquiry: ${data.name} - ${categoryLabel}`,
+          body: emailBody
+        });
 
-      // Send confirmation to customer
-      await base44.integrations.Core.SendEmail({
-        from_name: "Crafted By Design Co.",
-        to: data.email,
-        subject: "Thank You for Your Inquiry",
-        body: `Hi ${data.name},
+        // Send confirmation to customer
+        await base44.integrations.Core.SendEmail({
+          from_name: "Crafted By Design Co.",
+          to: data.email,
+          subject: "Thank You for Your Inquiry",
+          body: `Hi ${data.name},
 
 Thank you for reaching out! We've received your inquiry and will be in touch shortly.
 
 Best regards,
 Crafted By Design Co.`
-      });
+        });
+      } catch (emailError) {
+        console.error("Email send failed (inquiry was saved):", emailError);
+      }
 
       return inquiry;
     },
     onSuccess: () => {
       setSubmitted(true);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        category: "",
+        event_date: "",
+        message: "",
+        vision_images: [],
+      });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    onError: (error) => {
+      alert("Failed to submit inquiry: " + error.message);
     },
   });
 
