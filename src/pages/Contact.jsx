@@ -80,6 +80,15 @@ export default function Contact() {
 
       console.log('Created inquiry:', inquiry);
 
+      // Send email notification
+      try {
+        console.log('Sending email notification...');
+        await base44.functions.invoke('sendInquiryEmail', { inquiry });
+        console.log('Email sent successfully');
+      } catch (error) {
+        console.error('Failed to send email:', error);
+      }
+
       // Sync to Google Calendar
       try {
         console.log('Syncing to calendar...');
