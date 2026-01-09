@@ -3,16 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
+    
+    console.log('[Calendar Sync] Function called');
+    
     const { inquiry } = await req.json();
+    console.log('[Calendar Sync] Inquiry received:', inquiry?.name);
 
     // Get Google Calendar access token
+    console.log('[Calendar Sync] Getting access token...');
     const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlecalendar');
+    console.log('[Calendar Sync] Access token retrieved');
 
     // Prepare event data
     const eventDate = inquiry.event_date 

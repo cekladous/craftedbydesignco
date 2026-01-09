@@ -120,7 +120,9 @@ export default function Contact() {
 
       // Sync to Google Calendar
       try {
-        await base44.functions.invoke('syncInquiryToCalendar', { inquiry });
+        console.log('Syncing to calendar...');
+        const calResult = await base44.functions.invoke('syncInquiryToCalendar', { inquiry });
+        console.log('Calendar sync result:', calResult);
       } catch (error) {
         console.error('Failed to sync to calendar:', error);
         // Don't fail the inquiry submission if calendar sync fails
@@ -128,7 +130,9 @@ export default function Contact() {
 
       // Sync to Google Sheets
       try {
-        await base44.functions.invoke('syncInquiryToSheets', { inquiry });
+        console.log('Syncing to sheets...');
+        const sheetsResult = await base44.functions.invoke('syncInquiryToSheets', { inquiry });
+        console.log('Sheets sync result:', sheetsResult);
       } catch (error) {
         console.error('Failed to sync to sheets:', error);
         // Don't fail the inquiry submission if sheets sync fails

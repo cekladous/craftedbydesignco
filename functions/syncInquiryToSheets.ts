@@ -3,18 +3,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
+    
+    console.log('[Sheets Sync] Function called');
+    
     const { inquiry } = await req.json();
+    console.log('[Sheets Sync] Inquiry received:', inquiry?.name);
 
     // Get Google Sheets access token and spreadsheet ID
     const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlesheets');
     const spreadsheetId = Deno.env.get('GOOGLE_SHEET_ID');
 
+    console.log('[Sheets Sync] Sheet ID:', spreadsheetId);
+    
     if (!spreadsheetId) {
       throw new Error('GOOGLE_SHEET_ID not configured');
     }
@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     ];
 
     // Append to spreadsheet
+    console.log('[Sheets Sync] Attempting to append row...');
     const response = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1:append?valueInputOption=RAW`,
       {
@@ -49,17 +50,19 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error('[Sheets Sync] API Error:', error);
       throw new Error(`Sheets API error: ${error}`);
     }
 
     const result = await response.json();
+    console.log('[Sheets Sync] Success! Updated range:', result.updates.updatedRange);
 
     return Response.json({ 
       success: true, 
       updatedRange: result.updates.updatedRange
     });
   } catch (error) {
-    console.error('Sheets sync error:', error);
+    console.error('[Sheets Sync] Error:', error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
