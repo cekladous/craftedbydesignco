@@ -53,7 +53,6 @@ const categories = [
   { value: "corporate", label: "Corporate" },
   { value: "home", label: "Home Décor" },
   { value: "gifts", label: "Personalized Gifts" },
-  { value: "specialty", label: "Specialty Items" },
 ];
 
 

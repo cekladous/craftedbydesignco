@@ -31,7 +31,6 @@ const categories = [
   { value: "corporate", label: "Corporate & Branded" },
   { value: "home", label: "Home Décor" },
   { value: "gifts", label: "Personalized Gifts" },
-  { value: "specialty", label: "Specialty Items" },
   { value: "other", label: "Other / Not Sure" },
 ];
 
