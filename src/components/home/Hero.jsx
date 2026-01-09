@@ -16,6 +16,7 @@ export default function Hero() {
   });
 
   const heroImage = settings?.hero_image;
+  const tagline = settings?.hero_tagline || "Custom Laser-Cut & Engraved Designs";
   const headline = settings?.hero_headline || "Crafted with\nIntention";
   const subheadline = settings?.hero_subheadline || "Handcrafted pieces for weddings, milestones, corporate events and moments worth celebrating. Made in New Jersey with precision and care.";
 
@@ -45,7 +46,7 @@ export default function Hero() {
           transition={{ duration: 0.8 }}
           className="text-[10px] tracking-[0.3em] uppercase text-[#C4A962] mb-6"
         >
-          Custom Laser-Cut & Engraved Designs
+          {tagline}
         </motion.p>
         
         <motion.h1
