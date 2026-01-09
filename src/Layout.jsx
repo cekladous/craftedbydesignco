@@ -28,6 +28,10 @@ export default function Layout({ children, currentPageName }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPageName]);
+
   const navLinks = [
     { name: "Portfolio", page: "Portfolio" },
     { name: "Capabilities", page: "Capabilities" },
