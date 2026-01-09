@@ -98,46 +98,6 @@ export default function Contact() {
         console.error('Failed to sync to sheets:', error);
       }
 
-      // Send emails
-      const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
-      const emailBody = `
-  New inquiry received from your website:
-
-  Name: ${data.name}
-  Email: ${data.email}
-  Phone: ${data.phone || "Not provided"}
-  Category: ${categoryLabel}
-  Event/Need-By Date: ${data.event_date ? new Date(data.event_date).toLocaleDateString() : "Not provided"}
-
-  Message:
-  ${data.message}
-
-  ${data.vision_images?.length > 0 ? `\nInspiration Images Attached: ${data.vision_images.length} image(s)` : ""}
-
-  ---
-  View all inquiries in your admin dashboard.
-      `.trim();
-
-      await base44.integrations.Core.SendEmail({
-        from_name: "Crafted By Design Co. Website",
-        to: "craftedxdesignco@gmail.com",
-        subject: `New Inquiry: ${data.name} - ${categoryLabel}`,
-        body: emailBody
-      });
-
-      // Send confirmation to customer
-      await base44.integrations.Core.SendEmail({
-        from_name: "Crafted By Design Co.",
-        to: data.email,
-        subject: "Thank You for Your Inquiry",
-        body: `Hi ${data.name},
-
-  Thank you for reaching out! We've received your inquiry and will be in touch shortly.
-
-  Best regards,
-  Crafted By Design Co.`
-      });
-
       return inquiry;
     },
     onSuccess: () => {
