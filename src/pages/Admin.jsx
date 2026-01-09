@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -151,6 +152,17 @@ export default function Admin() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] }),
   });
 
+  const reorderItems = useMutation({
+    mutationFn: async (reorderedItems) => {
+      for (let i = 0; i < reorderedItems.length; i++) {
+        await base44.entities.PortfolioItem.update(reorderedItems[i].id, {
+          display_order: i
+        });
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-portfolio"] }),
+  });
+
   const bulkDeleteItems = useMutation({
     mutationFn: async (ids) => {
       console.log('Deleting items:', ids);
@@ -256,6 +268,20 @@ export default function Admin() {
     if (confirm(`Delete ${selectedItems.size} selected items? This cannot be undone.`)) {
       bulkDeleteItems.mutate(Array.from(selectedItems));
     }
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination || bulkDeleteMode) return;
+
+    const items = Array.from(portfolioItems);
+    const [removed] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, removed);
+
+    // Optimistically update the UI
+    queryClient.setQueryData(["admin-portfolio"], items);
+    
+    // Save to backend
+    reorderItems.mutate(items);
   };
 
   const handleUndo = async () => {
@@ -597,83 +623,104 @@ export default function Admin() {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {portfolioItems.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    layout
-                    className={`bg-white p-4 rounded-sm shadow-sm flex items-center gap-4 transition-all ${
-                      selectedItems.has(item.id) ? "ring-2 ring-[#C4A962] bg-[#C4A962]/5" : ""
-                    }`}
-                  >
-                    {bulkDeleteMode && (
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.has(item.id)}
-                        onChange={() => toggleItemSelection(item.id)}
-                        className="w-5 h-5 cursor-pointer accent-[#C4A962]"
-                      />
-                    )}
-                    {!bulkDeleteMode && (
-                      <GripVertical className="w-5 h-5 text-[#E8E6E3] cursor-grab" />
-                    )}
-                    
-                    <div className="w-16 h-16 rounded-sm overflow-hidden bg-[#E8E6E3] flex-shrink-0">
-                      {item.images?.[0] ? (
-                        <img
-                          src={item.images[0]}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-[#6B6B6B]/30" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-[#2D2D2D] truncate" title={item.name}>
-                          {item.name}
-                        </h3>
-                        {item.featured && (
-                          <Star className="w-4 h-4 text-[#C4A962] fill-current" />
-                        )}
-                        {!item.visible && (
-                          <EyeOff className="w-4 h-4 text-[#6B6B6B]" />
-                        )}
-                      </div>
-                      <p className="text-xs text-[#6B6B6B]">
-                        {categories.find((c) => c.value === item.category)?.label}
-                      </p>
-                    </div>
-
-                    {!bulkDeleteMode && (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDialog(item)}
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="portfolio-items">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="grid gap-4"
+                    >
+                      {portfolioItems.map((item, index) => (
+                        <Draggable
+                          key={item.id}
+                          draggableId={item.id}
+                          index={index}
+                          isDragDisabled={bulkDeleteMode}
                         >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm("Delete this item?")) {
-                              deleteItem.mutate(item.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`bg-white p-4 rounded-sm shadow-sm flex items-center gap-4 transition-all ${
+                                selectedItems.has(item.id) ? "ring-2 ring-[#C4A962] bg-[#C4A962]/5" : ""
+                              } ${snapshot.isDragging ? "shadow-lg" : ""}`}
+                            >
+                              {bulkDeleteMode ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.has(item.id)}
+                                  onChange={() => toggleItemSelection(item.id)}
+                                  className="w-5 h-5 cursor-pointer accent-[#C4A962]"
+                                />
+                              ) : (
+                                <div {...provided.dragHandleProps}>
+                                  <GripVertical className="w-5 h-5 text-[#C4A962] cursor-grab active:cursor-grabbing" />
+                                </div>
+                              )}
+
+                              <div className="w-16 h-16 rounded-sm overflow-hidden bg-[#E8E6E3] flex-shrink-0">
+                                {item.images?.[0] ? (
+                                  <img
+                                    src={item.images[0]}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <ImageIcon className="w-6 h-6 text-[#6B6B6B]/30" />
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-medium text-[#2D2D2D] truncate" title={item.name}>
+                                    {item.name}
+                                  </h3>
+                                  {item.featured && (
+                                    <Star className="w-4 h-4 text-[#C4A962] fill-current" />
+                                  )}
+                                  {!item.visible && (
+                                    <EyeOff className="w-4 h-4 text-[#6B6B6B]" />
+                                  )}
+                                </div>
+                                <p className="text-xs text-[#6B6B6B]">
+                                  {categories.find((c) => c.value === item.category)?.label}
+                                </p>
+                              </div>
+
+                              {!bulkDeleteMode && (
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => openDialog(item)}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      if (confirm("Delete this item?")) {
+                                        deleteItem.mutate(item.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </TabsContent>
 
