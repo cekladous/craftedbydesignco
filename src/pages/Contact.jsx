@@ -77,25 +77,25 @@ export default function Contact() {
     mutationFn: async (data) => {
       // Create inquiry first
       const inquiry = await base44.entities.Inquiry.create(data);
-      
+
       // Send emails - these must succeed for submission to complete
       const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
       const emailBody = `
-New inquiry received from your website:
+  New inquiry received from your website:
 
-Name: ${data.name}
-Email: ${data.email}
-Phone: ${data.phone || "Not provided"}
-Category: ${categoryLabel}
-Event/Need-By Date: ${data.event_date ? new Date(data.event_date).toLocaleDateString() : "Not provided"}
+  Name: ${data.name}
+  Email: ${data.email}
+  Phone: ${data.phone || "Not provided"}
+  Category: ${categoryLabel}
+  Event/Need-By Date: ${data.event_date ? new Date(data.event_date).toLocaleDateString() : "Not provided"}
 
-Message:
-${data.message}
+  Message:
+  ${data.message}
 
-${data.vision_images?.length > 0 ? `\nInspiration Images Attached: ${data.vision_images.length} image(s)` : ""}
+  ${data.vision_images?.length > 0 ? `\nInspiration Images Attached: ${data.vision_images.length} image(s)` : ""}
 
----
-View all inquiries in your admin dashboard.
+  ---
+  View all inquiries in your admin dashboard.
       `.trim();
 
       await base44.integrations.Core.SendEmail({
@@ -112,11 +112,19 @@ View all inquiries in your admin dashboard.
         subject: "Thank You for Your Inquiry",
         body: `Hi ${data.name},
 
-Thank you for reaching out! We've received your inquiry and will be in touch shortly.
+  Thank you for reaching out! We've received your inquiry and will be in touch shortly.
 
-Best regards,
-Crafted By Design Co.`
+  Best regards,
+  Crafted By Design Co.`
       });
+
+      // Sync to Google Calendar
+      try {
+        await base44.functions.invoke('syncInquiryToCalendar', { inquiry });
+      } catch (error) {
+        console.error('Failed to sync to calendar:', error);
+        // Don't fail the inquiry submission if calendar sync fails
+      }
 
       return inquiry;
     },
