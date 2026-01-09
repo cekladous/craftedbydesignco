@@ -11,6 +11,7 @@ import ImageUploader from "@/components/admin/ImageUploader";
 export default function SiteSettingsManager() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
+    hero_tagline: "Custom Laser-Cut & Engraved Designs",
     hero_image: "",
     hero_headline: "Custom Laser-Cut\n& Engraved\nDesigns",
     hero_subheadline: "Handcrafted pieces for weddings, milestones, and moments worth celebrating. Made in New Jersey with precision and care.",
@@ -28,6 +29,7 @@ export default function SiteSettingsManager() {
   useEffect(() => {
     if (settings) {
       setFormData({
+        hero_tagline: settings.hero_tagline || "Custom Laser-Cut & Engraved Designs",
         hero_image: settings.hero_image || "",
         hero_headline: settings.hero_headline || "Custom Laser-Cut\n& Engraved\nDesigns",
         hero_subheadline: settings.hero_subheadline || "Handcrafted pieces for weddings, milestones, corporate events and moments worth celebrating. Made in New Jersey with precision and care.",
@@ -71,6 +73,18 @@ export default function SiteSettingsManager() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-sm shadow-sm space-y-6">
+        <div className="space-y-2">
+          <Label>Hero Tagline (Small Text Above Title)</Label>
+          <Input
+            value={formData.hero_tagline}
+            onChange={(e) => setFormData({ ...formData, hero_tagline: e.target.value })}
+            placeholder="Custom Laser-Cut & Engraved Designs"
+          />
+          <p className="text-xs text-[#6B6B6B]">
+            The small uppercase text that appears above the main headline
+          </p>
+        </div>
+
         <div className="space-y-2">
           <Label>Hero Background Image</Label>
           <ImageUploader
