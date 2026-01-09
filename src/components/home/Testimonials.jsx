@@ -48,7 +48,11 @@ export default function Testimonials() {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className="w-4 h-4 text-[#C4A962] fill-current"
+                    className={`w-4 h-4 ${
+                      i < (testimonial.rating || 5)
+                        ? "text-[#C4A962] fill-current"
+                        : "text-[#E8E6E3] fill-current"
+                    }`}
                   />
                 ))}
               </div>

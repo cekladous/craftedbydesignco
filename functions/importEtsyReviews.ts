@@ -86,10 +86,20 @@ Deno.serve(async (req) => {
         const reviewText = cleanEncoding(
           review.review || review.message || review.text || review.comment || ''
         );
-        const rating = review.rating || review.stars || 5;
-        const reviewDate = review.created_timestamp 
-          ? new Date(review.created_timestamp * 1000).toISOString().split('T')[0]
-          : review.date || review.review_date || null;
+        const rating = review.star_rating || review.rating || review.stars || 5;
+        
+        // Parse date_reviewed format (MM/DD/YYYY) or other formats
+        let reviewDate = null;
+        if (review.date_reviewed) {
+          const parts = review.date_reviewed.split('/');
+          if (parts.length === 3) {
+            reviewDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+          }
+        } else if (review.created_timestamp) {
+          reviewDate = new Date(review.created_timestamp * 1000).toISOString().split('T')[0];
+        } else {
+          reviewDate = review.date || review.review_date || null;
+        }
 
         if (!reviewText) {
           skipped++;

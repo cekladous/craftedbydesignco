@@ -45,6 +45,8 @@ export default function TestimonialsManager() {
   const [formData, setFormData] = useState(emptyTestimonial);
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState(null);
+  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ["admin-testimonials"],
@@ -70,6 +72,19 @@ export default function TestimonialsManager() {
   const deleteItem = useMutation({
     mutationFn: (id) => base44.entities.Testimonial.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-testimonials"] }),
+  });
+
+  const bulkDeleteItems = useMutation({
+    mutationFn: async (ids) => {
+      for (const id of ids) {
+        await base44.entities.Testimonial.delete(id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-testimonials"] });
+      setSelectedItems(new Set());
+      setBulkDeleteMode(false);
+    },
   });
 
   const reorderItems = useMutation({
@@ -110,7 +125,7 @@ export default function TestimonialsManager() {
   };
 
   const handleDragEnd = (result) => {
-    if (!result.destination) return;
+    if (!result.destination || bulkDeleteMode) return;
 
     const items = Array.from(testimonials);
     const [removed] = items.splice(result.source.index, 1);
@@ -118,6 +133,31 @@ export default function TestimonialsManager() {
 
     queryClient.setQueryData(["admin-testimonials"], items);
     reorderItems.mutate(items);
+  };
+
+  const toggleItemSelection = (itemId) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.size === testimonials.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(testimonials.map(item => item.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedItems.size === 0) return;
+    if (confirm(`Delete ${selectedItems.size} selected testimonials? This cannot be undone.`)) {
+      bulkDeleteItems.mutate(Array.from(selectedItems));
+    }
   };
 
   const handleJsonUpload = async (e) => {
@@ -174,7 +214,46 @@ export default function TestimonialsManager() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <p className="text-[#6B6B6B]">{testimonials.length} testimonials</p>
+        <div className="flex items-center gap-4">
+          <p className="text-[#6B6B6B]">{testimonials.length} testimonials</p>
+          {testimonials.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setBulkDeleteMode(!bulkDeleteMode);
+                setSelectedItems(new Set());
+              }}
+              className={bulkDeleteMode ? "bg-[#C4A962] text-white" : ""}
+            >
+              {bulkDeleteMode ? "Cancel Selection" : "Select Items"}
+            </Button>
+          )}
+          {bulkDeleteMode && selectedItems.size > 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSelectAll}
+              >
+                {selectedItems.size === testimonials.length ? "Deselect All" : "Select All"}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteItems.isPending}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {bulkDeleteItems.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  `Delete ${selectedItems.size} Selected`
+                )}
+              </Button>
+            </>
+          )}
+        </div>
         <div className="flex gap-2">
           <label
             htmlFor="json-upload"
@@ -273,18 +352,27 @@ export default function TestimonialsManager() {
                 className="grid gap-4"
               >
                 {testimonials.map((item, index) => (
-                  <Draggable key={item.id} draggableId={item.id} index={index}>
+                  <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={bulkDeleteMode}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         className={`bg-white p-4 rounded-sm shadow-sm flex items-start gap-4 ${
-                          snapshot.isDragging ? "shadow-lg" : ""
-                        }`}
+                          selectedItems.has(item.id) ? "ring-2 ring-[#C4A962] bg-[#C4A962]/5" : ""
+                        } ${snapshot.isDragging ? "shadow-lg" : ""}`}
                       >
-                        <div {...provided.dragHandleProps}>
-                          <GripVertical className="w-5 h-5 text-[#C4A962] cursor-grab active:cursor-grabbing mt-1" />
-                        </div>
+                        {bulkDeleteMode ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.has(item.id)}
+                            onChange={() => toggleItemSelection(item.id)}
+                            className="w-5 h-5 mt-1 cursor-pointer accent-[#C4A962]"
+                          />
+                        ) : (
+                          <div {...provided.dragHandleProps}>
+                            <GripVertical className="w-5 h-5 text-[#C4A962] cursor-grab active:cursor-grabbing mt-1" />
+                          </div>
+                        )}
 
                         {item.image_url && (
                           <div className="w-12 h-12 rounded-full overflow-hidden bg-[#E8E6E3] flex-shrink-0">
@@ -313,26 +401,28 @@ export default function TestimonialsManager() {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openDialog(item)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              if (confirm("Delete this testimonial?")) {
-                                deleteItem.mutate(item.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
-                        </div>
+                        {!bulkDeleteMode && (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openDialog(item)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (confirm("Delete this testimonial?")) {
+                                  deleteItem.mutate(item.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </Draggable>
