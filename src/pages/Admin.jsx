@@ -39,6 +39,7 @@ import {
   Calendar,
   MessageSquare,
   Upload,
+  Sparkles,
 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 import VideoUploader from "@/components/admin/VideoUploader";
@@ -101,6 +102,7 @@ export default function Admin() {
   const [attachmentDialog, setAttachmentDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+  const [generatingSEO, setGeneratingSEO] = useState(false);
 
 
   // Check admin access
@@ -327,6 +329,61 @@ export default function Admin() {
       alert(`Undo failed: ${error.message}`);
     } finally {
       setUndoing(false);
+    }
+  };
+
+  const generateSEO = async () => {
+    if (!formData.name || !formData.description) {
+      alert('Please add a title and description first');
+      return;
+    }
+
+    setGeneratingSEO(true);
+    try {
+      const context = `
+Product: ${formData.name}
+Category: ${categories.find(c => c.value === formData.category)?.label || formData.category}
+Description: ${formData.description}
+Materials: ${(formData.materials || []).join(', ')}
+Customization: ${formData.customization_options || 'None'}
+      `.trim();
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are an SEO expert for a custom laser-cutting and engraving business called "Crafted By Design Co."
+
+Based on this product information:
+${context}
+
+Generate optimized SEO content with the following JSON schema:
+- seo_title: An engaging, keyword-rich title (max 60 chars) that would rank well in search
+- seo_description: A compelling meta description (max 160 chars) that describes the product and includes a call-to-action
+- seo_keywords: Comma-separated keywords (10-15 keywords) relevant to laser cutting, custom design, and this specific product
+
+Focus on keywords like: laser cutting, laser engraving, custom design, personalized gifts, and category-specific terms.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            seo_title: { type: "string" },
+            seo_description: { type: "string" },
+            seo_keywords: { type: "string" }
+          },
+          required: ["seo_title", "seo_description", "seo_keywords"]
+        }
+      });
+
+      if (response) {
+        setFormData({
+          ...formData,
+          seo_title: response.seo_title,
+          seo_description: response.seo_description,
+          seo_keywords: response.seo_keywords
+        });
+      }
+    } catch (error) {
+      console.error('SEO generation error:', error);
+      alert('Failed to generate SEO content. Please try again.');
+    } finally {
+      setGeneratingSEO(false);
     }
   };
 
@@ -1060,7 +1117,29 @@ export default function Admin() {
               </div>
 
               <div className="border-t border-[#E8E6E3] pt-6">
-                <h3 className="font-medium text-[#2D2D2D] mb-4">SEO Settings</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-[#2D2D2D]">SEO Settings</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateSEO}
+                    disabled={generatingSEO || !formData.name || !formData.description}
+                    className="text-[#C4A962] border-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+                  >
+                    {generatingSEO ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate with AI
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>SEO Title</Label>
