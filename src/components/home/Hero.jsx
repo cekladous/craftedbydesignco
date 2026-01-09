@@ -17,7 +17,7 @@ export default function Hero() {
 
   const heroImage = settings?.hero_image;
   const headline = settings?.hero_headline || "Crafted with\nIntention";
-  const subheadline = settings?.hero_subheadline || "Handcrafted pieces for weddings, corporate events, milestones, and moments worth celebrating. Made in New Jersey with precision and care.";
+  const subheadline = settings?.hero_subheadline || "Handcrafted pieces for weddings, milestones, corporate events and moments worth celebrating. Made in New Jersey with precision and care.";
 
   return (
     <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
