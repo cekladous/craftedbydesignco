@@ -49,6 +49,7 @@ import AttachmentSelector from "@/components/admin/AttachmentSelector";
 import SpecialtiesManager from "@/components/admin/SpecialtiesManager";
 import ExperienceManager from "@/components/admin/ExperienceManager";
 import TestimonialsManager from "@/components/admin/TestimonialsManager";
+import ContactSubmissionsManager from "@/components/admin/ContactSubmissionsManager";
 
 const categories = [
   { value: "wedding", label: "Wedding" },
@@ -89,7 +90,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("inquiries");
+  const [activeTab, setActiveTab] = useState("submissions");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
@@ -434,11 +435,11 @@ export default function Admin() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-[#E8E6E3] mb-8">
-            <TabsTrigger value="inquiries">
-              Inquiries
-              {inquiries.filter((i) => i.status === "new").length > 0 && (
+            <TabsTrigger value="submissions">
+              Contact Submissions
+              {inquiries.filter((i) => !i.read).length > 0 && (
                 <Badge className="ml-2 bg-[#C4A962] text-white text-xs">
-                  {inquiries.filter((i) => i.status === "new").length}
+                  {inquiries.filter((i) => !i.read).length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -763,7 +764,12 @@ export default function Admin() {
             <AttachmentsManager />
           </TabsContent>
 
-          {/* Inquiries Tab */}
+          {/* Contact Submissions Tab */}
+          <TabsContent value="submissions">
+            <ContactSubmissionsManager />
+          </TabsContent>
+
+          {/* Inquiries Tab (Legacy) */}
           <TabsContent value="inquiries">
             {inquiriesLoading ? (
               <div className="flex items-center justify-center py-20">
