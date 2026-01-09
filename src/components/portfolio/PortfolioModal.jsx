@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { ProductSchema } from "@/components/SchemaMarkup";
 
 const categoryLabels = {
   wedding: "Wedding",
@@ -62,7 +63,9 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <>
+          <ProductSchema item={item} />
+          <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -275,7 +278,8 @@ export default function PortfolioModal({ item, isOpen, onClose }) {
               </div>
             </div>
           </motion.div>
-        </motion.div>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

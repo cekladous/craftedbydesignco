@@ -1059,6 +1059,51 @@ export default function Admin() {
                 </p>
               </div>
 
+              <div className="border-t border-[#E8E6E3] pt-6">
+                <h3 className="font-medium text-[#2D2D2D] mb-4">SEO Settings</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>SEO Title</Label>
+                    <Input
+                      value={formData.seo_title || ''}
+                      onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
+                      placeholder="What people see in search results"
+                      maxLength={60}
+                    />
+                    <p className="text-xs text-[#6B6B6B]">
+                      {(formData.seo_title || '').length}/60 characters
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>SEO Description</Label>
+                    <textarea
+                      value={formData.seo_description || ''}
+                      onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
+                      placeholder="Brief description for search engines..."
+                      maxLength={160}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-[#E8E6E3] rounded-sm focus:border-[#C4A962] focus:outline-none focus:ring-1 focus:ring-[#C4A962]"
+                    />
+                    <p className="text-xs text-[#6B6B6B]">
+                      {(formData.seo_description || '').length}/160 characters
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>SEO Keywords</Label>
+                    <Input
+                      value={formData.seo_keywords || ''}
+                      onChange={(e) => setFormData({ ...formData, seo_keywords: e.target.value })}
+                      placeholder="e.g., laser cutting, wedding signage, custom gifts"
+                    />
+                    <p className="text-xs text-[#6B6B6B]">
+                      Comma-separated keywords for search visibility
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label>File Attachments (Optional)</Label>
                 <AttachmentSelector

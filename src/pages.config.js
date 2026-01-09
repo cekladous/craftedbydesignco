@@ -5,6 +5,7 @@ import Contact from './pages/Contact';
 import Home from './pages/Home';
 import Portfolio from './pages/Portfolio';
 import Process from './pages/Process';
+import Sitemap from './pages/Sitemap';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Home": Home,
     "Portfolio": Portfolio,
     "Process": Process,
+    "Sitemap": Sitemap,
 }
 
 export const pagesConfig = {
