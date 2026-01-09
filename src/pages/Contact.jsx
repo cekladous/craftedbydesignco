@@ -74,7 +74,38 @@ export default function Contact() {
   }, []);
 
   const createInquiry = useMutation({
-    mutationFn: (data) => base44.entities.Inquiry.create(data),
+    mutationFn: async (data) => {
+      const inquiry = await base44.entities.Inquiry.create(data);
+      
+      // Send email notification
+      const categoryLabel = categories.find(c => c.value === data.category)?.label || data.category || "Not specified";
+      const emailBody = `
+New inquiry received from your website:
+
+Name: ${data.name}
+Email: ${data.email}
+Phone: ${data.phone || "Not provided"}
+Category: ${categoryLabel}
+Event/Need-By Date: ${data.event_date ? new Date(data.event_date).toLocaleDateString() : "Not provided"}
+
+Message:
+${data.message}
+
+${data.vision_images?.length > 0 ? `\nInspiration Images Attached: ${data.vision_images.length} image(s)` : ""}
+
+---
+View all inquiries in your admin dashboard.
+      `.trim();
+
+      await base44.integrations.Core.SendEmail({
+        from_name: "Crafted By Design Co. Website",
+        to: "craftedxdesignco@gmail.com",
+        subject: `New Inquiry: ${data.name} - ${categoryLabel}`,
+        body: emailBody
+      });
+
+      return inquiry;
+    },
     onSuccess: () => setSubmitted(true),
   });
 
