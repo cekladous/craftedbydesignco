@@ -1,0 +1,132 @@
+{
+  "name": "PortfolioItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "wedding",
+          "baby",
+          "corporate",
+          "home",
+          "gifts",
+          "specialty"
+        ]
+      },
+      "description": "Product categories (multiple allowed)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "wedding",
+        "baby",
+        "corporate",
+        "home",
+        "gifts",
+        "specialty"
+      ],
+      "description": "Primary category (legacy - for backwards compatibility)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the item"
+    },
+    "price": {
+      "type": "number",
+      "description": "Starting price in USD (e.g. 45.00)"
+    },
+    "price_label": {
+      "type": "string",
+      "description": "Price display label, e.g. 'Starting at' or 'From'",
+      "default": "Starting at"
+    },
+    "materials": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Materials used"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "sku": {
+      "type": "string",
+      "description": "SKU reference from original listing"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Image URLs"
+    },
+    "videos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Video URLs (MP4 format)"
+    },
+    "etsy_url": {
+      "type": "string",
+      "description": "Link to Etsy listing (optional)"
+    },
+    "etsy_listing_id": {
+      "type": "string",
+      "description": "Etsy listing ID for refresh matching"
+    },
+    "customization_options": {
+      "type": "string",
+      "description": "Available customization options"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show on homepage"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show in portfolio"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Order in portfolio display"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of attached files (UploadedFile entity)"
+    },
+    "seo_title": {
+      "type": "string",
+      "description": "SEO meta title (for search engines)"
+    },
+    "seo_description": {
+      "type": "string",
+      "description": "SEO meta description (for search engines)"
+    },
+    "seo_keywords": {
+      "type": "string",
+      "description": "SEO keywords (comma-separated)"
+    }
+  },
+  "required": [
+    "name",
+    "description"
+  ]
+}

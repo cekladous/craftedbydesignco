@@ -224,9 +224,15 @@ export default function PortfolioDetail() {
             <p className="text-[10px] tracking-widest uppercase text-[#C4A962] mb-2">
               {categoryLabels[item.category] || item.category}
             </p>
-            <h1 className="font-serif text-4xl lg:text-5xl text-[#2D2D2D] mb-6">
+            <h1 className="font-serif text-4xl lg:text-5xl text-[#2D2D2D] mb-4">
               {item.name}
             </h1>
+
+            {item.price && (
+              <p className="text-2xl font-serif text-[#C4A962] mb-6">
+                {item.price_label || "Starting at"} ${item.price.toFixed(2)}
+              </p>
+            )}
             <p className="text-[#6B6B6B] leading-relaxed mb-8 whitespace-pre-wrap">
               {item.description}
             </p>
