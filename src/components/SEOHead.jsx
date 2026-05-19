@@ -5,7 +5,8 @@ export default function SEOHead({
   description = 'Custom laser-cut and engraved designs for weddings, gifts, home décor, and more. Handcrafted in New Jersey.',
   keywords = 'laser cutting, engraving, custom designs, wedding signage, personalized gifts',
   image = 'https://images.unsplash.com/photo-1578926078328-123456789?w=1200&h=630',
-  url = 'https://craftedbydesignco.vercel.app'
+  url = 'https://craftedbydesign.co',
+  product = null // { price, currency, availability, brand }
 }) {
   useEffect(() => {
     // Update document title
@@ -28,6 +29,17 @@ export default function SEOHead({
     updateMeta('og:description', description);
     updateMeta('og:image', image);
     updateMeta('og:url', url);
+    updateMeta('og:type', product ? 'product' : 'website');
+    updateMeta('og:site_name', 'Crafted By Design Co.');
+
+    if (product) {
+      updateMeta('product:price:amount', product.price || '');
+      updateMeta('product:price:currency', product.currency || 'USD');
+      updateMeta('product:availability', product.availability || 'in stock');
+      updateMeta('product:brand', product.brand || 'Crafted By Design Co.');
+      updateMeta('product:condition', 'new');
+    }
+
     updateMeta('twitter:title', title);
     updateMeta('twitter:description', description);
     updateMeta('twitter:image', image);

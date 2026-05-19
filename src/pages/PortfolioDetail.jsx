@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink, MessageSquare, Download, FileText, Image as ImageIcon, File, ArrowLeft, Loader2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { ProductSchema } from "@/components/SchemaMarkup";
+import SEOHead from "@/components/SEOHead";
 
 const categoryLabels = {
   wedding: "Wedding",
@@ -94,6 +95,19 @@ export default function PortfolioDetail() {
 
   return (
     <div className="pt-24 pb-24 min-h-screen bg-[#FAF9F7]">
+      <SEOHead
+        title={`${item.name} | Crafted By Design Co.`}
+        description={item.seo_description || item.description}
+        keywords={item.seo_keywords || ''}
+        image={item.images?.[0] || ''}
+        url={`https://craftedbydesign.co/portfolio/${item.id}`}
+        product={item.price ? {
+          price: item.price.toFixed(2),
+          currency: 'USD',
+          availability: 'in stock',
+          brand: 'Crafted By Design Co.'
+        } : null}
+      />
       <ProductSchema item={item} />
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Back */}
