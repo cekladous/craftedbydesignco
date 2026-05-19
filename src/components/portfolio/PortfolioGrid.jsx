@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ExternalLink, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,6 +15,11 @@ const categoryLabels = {
 };
 
 export default function PortfolioGrid({ items, onItemClick }) {
+  const navigate = useNavigate();
+
+  const handleItemClick = (item) => {
+    navigate(`/portfolio/${item.id}`);
+  };
   if (!items || items.length === 0) {
     return (
       <div className="text-center py-20">
@@ -31,7 +37,7 @@ export default function PortfolioGrid({ items, onItemClick }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
           className="group cursor-pointer"
-          onClick={() => onItemClick?.(item)}
+          onClick={() => handleItemClick(item)}
         >
           <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[#E8E6E3]">
             {item.images?.[0] ? (
