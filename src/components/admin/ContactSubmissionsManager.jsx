@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Mail,
   Trash2,
@@ -22,6 +23,7 @@ import {
   ChevronUp,
   FileImage,
   Download,
+  Send,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -54,6 +56,11 @@ export default function ContactSubmissionsManager() {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
+  const [quoteInquiry, setQuoteInquiry] = useState(null);
+  const [quoteSubject, setQuoteSubject] = useState("");
+  const [quoteText, setQuoteText] = useState("");
+  const [quoteSending, setQuoteSending] = useState(false);
 
   const { data: inquiries = [], isLoading } = useQuery({
     queryKey: ["contact-submissions"],
@@ -95,6 +102,33 @@ export default function ContactSubmissionsManager() {
         },
       }
     );
+  };
+
+  const openQuoteDialog = (inquiry) => {
+    setQuoteInquiry(inquiry);
+    setQuoteSubject(`Your Custom Quote from Crafted By Design Co.`);
+    setQuoteText(`Hi ${inquiry.name},\n\nHere are the details for your custom project:\n\n`);
+    setQuoteDialogOpen(true);
+  };
+
+  const sendQuote = async () => {
+    if (!quoteInquiry || !quoteText) return;
+    setQuoteSending(true);
+    try {
+      await base44.functions.invoke('sendQuoteEmail', {
+        inquiry: quoteInquiry,
+        subject: quoteSubject,
+        quoteText,
+      });
+      updateInquiry.mutate({ id: quoteInquiry.id, data: { status: 'quoted' } });
+      setQuoteDialogOpen(false);
+      setQuoteInquiry(null);
+      setQuoteText("");
+    } catch (error) {
+      alert('Failed to send quote: ' + error.message);
+    } finally {
+      setQuoteSending(false);
+    }
   };
 
   const unreadCount = inquiries.filter((i) => !i.read).length;
@@ -361,9 +395,18 @@ export default function ContactSubmissionsManager() {
                      {inquiry.notes ? "Edit Notes" : "Add Notes"}
                    </Button>
                    <Button
-                     variant="destructive"
-                     size="sm"
-                     onClick={() => {
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openQuoteDialog(inquiry)}
+                      className="text-[#C4A962] border-[#C4A962] hover:bg-[#C4A962] hover:text-white"
+                    >
+                      <Send className="w-4 h-4 mr-1" />
+                      Send Quote
+                    </Button>
+                   <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
                        if (confirm("Delete this submission?")) {
                          deleteInquiry.mutate(inquiry.id);
                        }
@@ -380,6 +423,51 @@ export default function ContactSubmissionsManager() {
           ))}
         </div>
       )}
+
+      {/* Quote Builder Dialog */}
+      <Dialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Send Quote — {quoteInquiry?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <p className="text-xs tracking-widest uppercase text-[#6B6B6B]">To</p>
+              <p className="text-sm text-[#2D2D2D] font-medium">{quoteInquiry?.email}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs tracking-widest uppercase text-[#6B6B6B]">Subject</p>
+              <Input
+                value={quoteSubject}
+                onChange={(e) => setQuoteSubject(e.target.value)}
+                className="border-[#E8E6E3] focus:border-[#C4A962]"
+              />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs tracking-widest uppercase text-[#6B6B6B]">Quote Details</p>
+              <Textarea
+                value={quoteText}
+                onChange={(e) => setQuoteText(e.target.value)}
+                placeholder={"e.g. Custom acrylic welcome sign (24x18\") — $125\nRush processing (3 days) — $25\nShipping — $15\n\nTotal: $165"}
+                rows={10}
+                className="border-[#E8E6E3] focus:border-[#C4A962] font-mono text-sm"
+              />
+              <p className="text-xs text-[#6B6B6B]">This will be sent as a beautifully formatted email. Status will auto-update to "Quoted".</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setQuoteDialogOpen(false)}>Cancel</Button>
+              <Button
+                onClick={sendQuote}
+                disabled={quoteSending || !quoteText}
+                className="bg-[#2D2D2D] hover:bg-[#C4A962]"
+              >
+                {quoteSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                Send Quote
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Notes Dialog */}
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>

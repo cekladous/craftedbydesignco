@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     console.log('[Sheets Sync] Inquiry received:', inquiry?.name);
 
     // Get Google Sheets access token and spreadsheet ID
-    const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlesheets');
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection('googlesheets');
     const spreadsheetId = Deno.env.get('GOOGLE_SHEET_ID');
 
     console.log('[Sheets Sync] Sheet ID:', spreadsheetId);
