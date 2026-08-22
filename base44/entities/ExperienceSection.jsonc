@@ -1,0 +1,32 @@
+{
+  "name": "ExperienceSection",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Unique key (use 'main')"
+    },
+    "title": {
+      "type": "string",
+      "description": "Section title"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Section subtitle"
+    },
+    "description": {
+      "type": "string",
+      "description": "Section description"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Gallery images (up to 4)"
+    }
+  },
+  "required": [
+    "setting_key"
+  ]
+}

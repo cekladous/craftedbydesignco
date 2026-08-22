@@ -104,6 +104,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-[#E8E6E3]">
                 <a
                   href="https://www.instagram.com/craftedbydesignco"
+                  aria-label="Visit Crafted By Design Co. on Instagram (opens in new tab)"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`transition-colors duration-300 hover:text-[#C4A962] ${
@@ -114,6 +115,7 @@ export default function Layout({ children, currentPageName }) {
                 </a>
                 <a
                   href="https://www.facebook.com/CraftedbyDesignCo"
+                  aria-label="Visit Crafted By Design Co. on Facebook (opens in new tab)"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`transition-colors duration-300 hover:text-[#C4A962] ${
@@ -151,6 +153,7 @@ export default function Layout({ children, currentPageName }) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               className={`lg:hidden p-2 transition-colors duration-300 ${
                 scrolled || !isHome ? "text-[#2D2D2D]" : "text-white"
               }`}
@@ -186,6 +189,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="pt-6 border-t border-[#E8E6E3] flex items-center gap-6">
                   <a
                     href="https://www.instagram.com/craftedbydesignco"
+                  aria-label="Visit Crafted By Design Co. on Instagram (opens in new tab)"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#6B6B6B] hover:text-[#C4A962] transition-colors"
@@ -194,6 +198,7 @@ export default function Layout({ children, currentPageName }) {
                   </a>
                   <a
                     href="https://www.facebook.com/CraftedbyDesignCo"
+                  aria-label="Visit Crafted By Design Co. on Facebook (opens in new tab)"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#6B6B6B] hover:text-[#C4A962] transition-colors"
@@ -267,6 +272,7 @@ export default function Layout({ children, currentPageName }) {
                 </a>
                 <a
                   href="https://www.instagram.com/craftedbydesignco"
+                  aria-label="Visit Crafted By Design Co. on Instagram (opens in new tab)"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"
@@ -275,6 +281,7 @@ export default function Layout({ children, currentPageName }) {
                 </a>
                 <a
                   href="https://www.facebook.com/CraftedbyDesignCo"
+                  aria-label="Visit Crafted By Design Co. on Facebook (opens in new tab)"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-sm text-white/60 hover:text-[#C4A962] transition-colors"

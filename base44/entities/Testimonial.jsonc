@@ -1,0 +1,58 @@
+{
+  "name": "Testimonial",
+  "type": "object",
+  "properties": {
+    "customer_name": {
+      "type": "string",
+      "description": "Customer's name"
+    },
+    "quote": {
+      "type": "string",
+      "description": "Testimonial text"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Optional customer photo"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "Optional link (e.g., to their Instagram or wedding website)"
+    },
+    "link_text": {
+      "type": "string",
+      "description": "Text for the link button"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Star rating (1-5)"
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the review"
+    },
+    "etsy_review_id": {
+      "type": "string",
+      "description": "Etsy review ID for duplicate prevention"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show on homepage"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Publicly visible"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Order in display"
+    }
+  },
+  "required": [
+    "customer_name",
+    "quote"
+  ]
+}

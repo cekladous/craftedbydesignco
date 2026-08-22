@@ -1,0 +1,90 @@
+{
+  "name": "Inquiry",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Contact name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone (optional)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "wedding",
+        "baby",
+        "corporate",
+        "home",
+        "gifts",
+        "specialty",
+        "other"
+      ],
+      "description": "Project category"
+    },
+    "message": {
+      "type": "string",
+      "description": "Project details"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Event or needed-by date (optional)"
+    },
+    "vision_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Uploaded vision/inspiration images"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "quoted",
+        "closed"
+      ],
+      "default": "new",
+      "description": "Inquiry status"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the inquiry has been read"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "message"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

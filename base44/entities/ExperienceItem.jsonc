@@ -1,0 +1,23 @@
+{
+  "name": "ExperienceItem",
+  "type": "object",
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Experience bullet point text"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Order in display"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show on about page"
+    }
+  },
+  "required": [
+    "text"
+  ]
+}

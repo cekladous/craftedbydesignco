@@ -82,7 +82,7 @@ export default function PortfolioGrid({ items, onItemClick }) {
           </div>
           
           <div className="mt-4 space-y-1">
-            <p className="text-[10px] tracking-widest uppercase text-[#C4A962]">
+            <p className="text-[10px] tracking-widest uppercase text-[#8A6A28]">
               {categoryLabels[item.category] || item.category}
             </p>
             <h3 className="font-serif text-xl text-[#2D2D2D] group-hover:text-[#C4A962] transition-colors">

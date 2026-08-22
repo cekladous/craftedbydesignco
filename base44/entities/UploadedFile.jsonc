@@ -1,0 +1,30 @@
+{
+  "name": "UploadedFile",
+  "type": "object",
+  "properties": {
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "filename": {
+      "type": "string",
+      "description": "Original filename"
+    },
+    "mime_type": {
+      "type": "string",
+      "description": "MIME type of the file"
+    },
+    "size": {
+      "type": "number",
+      "description": "File size in bytes"
+    },
+    "label": {
+      "type": "string",
+      "description": "Optional label/description for the file"
+    }
+  },
+  "required": [
+    "file_url",
+    "filename"
+  ]
+}

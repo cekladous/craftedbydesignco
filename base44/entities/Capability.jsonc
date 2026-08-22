@@ -1,0 +1,44 @@
+{
+  "name": "Capability",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Capability title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the capability"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Image representing this capability"
+    },
+    "icon_name": {
+      "type": "string",
+      "enum": [
+        "Sparkles",
+        "Layers",
+        "Package",
+        "Scissors",
+        "Image"
+      ],
+      "default": "Sparkles",
+      "description": "Icon to display"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Order in display"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show on capabilities page"
+    }
+  },
+  "required": [
+    "title",
+    "description"
+  ]
+}

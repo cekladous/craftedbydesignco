@@ -1,0 +1,45 @@
+{
+  "name": "Specialty",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Specialty title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the specialty"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Image for the specialty card"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "wedding",
+        "baby",
+        "corporate",
+        "home",
+        "gifts",
+        "specialty"
+      ],
+      "description": "Portfolio category this links to"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Order in display"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show on homepage"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "category"
+  ]
+}

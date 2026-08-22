@@ -1,0 +1,33 @@
+{
+  "name": "SiteSettings",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Unique key for this setting (e.g., 'home_hero')"
+    },
+    "hero_tagline": {
+      "type": "string",
+      "description": "Small tagline text above hero headline"
+    },
+    "hero_image": {
+      "type": "string",
+      "description": "Hero background image URL"
+    },
+    "hero_headline": {
+      "type": "string",
+      "description": "Main hero headline"
+    },
+    "hero_subheadline": {
+      "type": "string",
+      "description": "Hero subheadline text"
+    },
+    "about_image": {
+      "type": "string",
+      "description": "About page hero image URL"
+    }
+  },
+  "required": [
+    "setting_key"
+  ]
+}
